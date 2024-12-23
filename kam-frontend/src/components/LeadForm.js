@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { createLead } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 const LeadForm = ({ onLeadAdded }) => {
   const [formData, setFormData] = useState({
@@ -10,21 +11,32 @@ const LeadForm = ({ onLeadAdded }) => {
     assignedKAM: "",
   });
 
+  const navigate = useNavigate(); // Hook to navigate programmatically
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newLead = await createLead(formData); // Call API to create lead
-    onLeadAdded(newLead); // Notify parent component
-    setFormData({
-      name: "",
-      address: "",
-      contactNumber: "",
-      status: "New",
-      assignedKAM: "",
-    });
+    try {
+      const newLead = await createLead(formData); // Call API to create lead
+      if (onLeadAdded) {
+        onLeadAdded(newLead); // Notify parent component
+      }
+      setFormData({
+        name: "",
+        address: "",
+        contactNumber: "",
+        status: "New",
+        assignedKAM: "",
+      });
+
+      // Navigate to the newly created LeadPage
+      navigate(`/leads/${newLead._id}`);
+    } catch (error) {
+      console.error("Error creating lead:", error.message);
+    }
   };
 
   return (
@@ -81,6 +93,11 @@ const LeadForm = ({ onLeadAdded }) => {
       </button>
     </form>
   );
+};
+
+// Define default props after the component declaration
+LeadForm.defaultProps = {
+  onLeadAdded: null, // Set to null if not provided
 };
 
 export default LeadForm;

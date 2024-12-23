@@ -8,16 +8,17 @@ const {
   getDashboardStats,
   addContact,
   deleteContact,
+  getLeadById,
 } = require("../controllers/leads");
 
 // Routes for leads
+router.get("/dashboard", getDashboardStats); // Ensure this route is evaluated before ":id"
 router.get("/", getLeads);
 router.post("/", createLead);
+router.get("/:id", getLeadById);
 router.put("/:id", updateLead);
 router.delete("/:id", deleteLead);
-router.get("/dashboard", getDashboardStats);
 router.post("/:id/contacts", addContact);
-router.delete("/:id/contacts/:contactId", deleteContact);
 router.delete("/:id/contacts/:contactId", deleteContact);
 
 module.exports = router;

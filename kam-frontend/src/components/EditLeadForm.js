@@ -1,26 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { updateLead } from "../services/api";
+import { useParams, useNavigate } from "react-router-dom"; // Import hooks
+import { getLeadById, updateLead } from "../services/api"; // Import required API functions
 
-const EditLeadForm = ({ lead, onUpdateComplete, onCancel }) => {
+const EditLeadForm = () => {
+  const { id } = useParams(); // Extract lead ID from URL params
+  const navigate = useNavigate(); // For navigation after update
   const [formData, setFormData] = useState({
     name: "",
     address: "",
     contactNumber: "",
-    status: "",
+    status: "New",
     assignedKAM: "",
   });
 
+  // Fetch lead data based on ID
   useEffect(() => {
-    if (lead) {
-      setFormData({
-        name: lead.name,
-        address: lead.address,
-        contactNumber: lead.contactNumber,
-        status: lead.status,
-        assignedKAM: lead.assignedKAM,
-      });
-    }
-  }, [lead]);
+    const fetchLead = async () => {
+      try {
+        const lead = await getLeadById(id); // API call to fetch lead data
+        setFormData({
+          name: lead.name || "",
+          address: lead.address || "",
+          contactNumber: lead.contactNumber || "",
+          status: lead.status || "New",
+          assignedKAM: lead.assignedKAM || "",
+        });
+      } catch (error) {
+        console.error("Error fetching lead:", error.message);
+      }
+    };
+    fetchLead();
+  }, [id]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,8 +38,16 @@ const EditLeadForm = ({ lead, onUpdateComplete, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await updateLead(lead._id, formData); // Call API to update the lead
-    onUpdateComplete(); // Notify parent component
+    try {
+      await updateLead(id, formData); // Call API to update the lead
+      navigate(`/leads/${id}`); // Redirect back to the lead's page
+    } catch (error) {
+      console.error("Error updating lead:", error.message);
+    }
+  };
+
+  const handleCancel = () => {
+    navigate(`/leads/${id}`); // Redirect back without saving
   };
 
   return (
@@ -100,7 +118,7 @@ const EditLeadForm = ({ lead, onUpdateComplete, onCancel }) => {
         </button>
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleCancel}
           className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
         >
           Cancel

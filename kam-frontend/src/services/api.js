@@ -12,9 +12,14 @@ export const createLead = async (data) => {
   return response.data;
 };
 
-export const updateLead = async (id, data) => {
-  const response = await axios.put(`${API_URL}/leads/${id}`, data);
-  return response.data;
+export const updateLead = async (id, updatedData) => {
+  try {
+    const response = await axios.put(`${API_URL}/leads/${id}`, updatedData);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating lead:", error.message);
+    throw error;
+  }
 };
 
 export const deleteLead = async (id) => {
@@ -45,4 +50,27 @@ export const deleteContactFromLead = async (leadId, contactId) => {
     `${API_URL}/leads/${leadId}/contacts/${contactId}`
   );
   return response.data; // Return the updated lead
+};
+
+export const getLeadById = async (id) => {
+  try {
+    const response = await axios.get(`${API_URL}/leads/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching lead by ID:", error.message);
+    throw error;
+  }
+};
+
+export const updateContactFromLead = async (leadId, updatedContact) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/leads/${leadId}/contacts/${updatedContact._id}`,
+      updatedContact
+    );
+    return response.data; // Return updated lead data
+  } catch (error) {
+    console.error("Error updating contact:", error.message);
+    throw error;
+  }
 };

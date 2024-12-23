@@ -62,9 +62,7 @@ const Dashboard = () => {
             <li
               key={lead._id}
               className="p-2 border-b cursor-pointer"
-              onClick={() =>
-                navigate(`/search`, { state: { name: lead.name } })
-              }
+              onClick={() => navigate(`/leads/${lead._id}`)}
             >
               <p className="font-bold">{lead.name}</p>
               <p>{lead.address}</p>

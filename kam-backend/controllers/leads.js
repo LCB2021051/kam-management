@@ -109,3 +109,22 @@ exports.deleteContact = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
+
+exports.getLeadById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find the lead by ID in the database
+    const lead = await Lead.findById(id);
+
+    if (!lead) {
+      return res.status(404).json({ error: "Lead not found" });
+    }
+
+    // Return the lead data
+    res.json(lead);
+  } catch (error) {
+    console.error("Error fetching lead by ID:", error.message);
+    res.status(500).json({ error: "Server error while fetching lead" });
+  }
+};
