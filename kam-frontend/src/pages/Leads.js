@@ -60,9 +60,9 @@ const Leads = () => {
             <div className="flex space-x-2">
               <button
                 onClick={() => handleEditLead(lead._id)}
-                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
               >
-                Edit
+                View
               </button>
               <button
                 onClick={() => handleDeleteLead(lead._id)}
