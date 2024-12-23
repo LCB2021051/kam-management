@@ -64,3 +64,48 @@ exports.getDashboardStats = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.addContact = async (req, res) => {
+  try {
+    const lead = await Lead.findById(req.params.id);
+    if (!lead) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
+
+    // Log the incoming data
+    console.log("Incoming Contact Data:", req.body);
+
+    // Validate incoming contact data
+    const { name, role, phone, email } = req.body;
+    if (!name || !role || !phone || !email) {
+      console.error("Invalid Contact Data:", req.body); // Log invalid data
+      return res.status(400).json({ message: "Invalid contact data" });
+    }
+
+    // Add the validated contact
+    lead.contacts.push({ name, role, phone, email });
+    await lead.save();
+    res.status(201).json(lead);
+  } catch (err) {
+    console.error("Error adding contact:", err.message);
+    res.status(400).json({ message: err.message });
+  }
+};
+
+exports.deleteContact = async (req, res) => {
+  try {
+    const lead = await Lead.findById(req.params.id); // Find lead by ID
+    if (!lead) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
+
+    // Remove the contact with the specified ID
+    lead.contacts = lead.contacts.filter(
+      (contact) => contact._id.toString() !== req.params.contactId
+    );
+    await lead.save(); // Save the updated lead
+    res.json(lead); // Return the updated lead
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};

@@ -16,8 +16,8 @@ const LeadForm = ({ onLeadAdded }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newLead = await createLead(formData);
-    onLeadAdded(newLead); // Callback to update the leads list
+    const newLead = await createLead(formData); // Call API to create lead
+    onLeadAdded(newLead); // Notify parent component
     setFormData({
       name: "",
       address: "",
@@ -29,7 +29,7 @@ const LeadForm = ({ onLeadAdded }) => {
 
   return (
     <form onSubmit={handleSubmit} className="p-4 bg-gray-100 rounded">
-      <h2 className="text-xl font-bold mb-4">Add New Lead</h2>
+      <h3 className="text-lg font-bold mb-4">Add New Lead</h3>
       <div className="mb-4">
         <label className="block mb-1">Name</label>
         <input

@@ -28,13 +28,13 @@ const EditLeadForm = ({ lead, onUpdateComplete, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await updateLead(lead._id, formData);
-    onUpdateComplete();
+    await updateLead(lead._id, formData); // Call API to update the lead
+    onUpdateComplete(); // Notify parent component
   };
 
   return (
     <form onSubmit={handleSubmit} className="p-4 bg-gray-100 rounded">
-      <h2 className="text-xl font-bold mb-4">Edit Lead</h2>
+      <h3 className="text-lg font-bold mb-4">Edit Lead</h3>
       <div className="mb-4">
         <label className="block mb-1">Name</label>
         <input
@@ -96,7 +96,7 @@ const EditLeadForm = ({ lead, onUpdateComplete, onCancel }) => {
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
-          Update
+          Update Lead
         </button>
         <button
           type="button"
