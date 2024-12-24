@@ -7,3 +7,8 @@ export const login = async (name) => {
   const response = await axios.post(`${API_BASE_URL}/login`, { name });
   return response.data;
 };
+
+export const logout = async (name) => {
+  const response = await axios.post(`${API_BASE_URL}/logout`, { name });
+  return response.data;
+};

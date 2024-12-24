@@ -1,14 +1,19 @@
 import React, { useState } from "react";
-import { login } from "../services/api";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { login } from "../services/api.js";
 
 const LoginPage = () => {
   const [name, setName] = useState(""); // Input for restaurant name
   const [loginMessage, setLoginMessage] = useState(""); // Feedback message for login status
+  const navigate = useNavigate(); // Initialize navigate
 
   const handleLogin = async () => {
     try {
-      await login(name); // Call the login API
+      const response = await login(name); // Call login API
       setLoginMessage("Login successful!");
+      navigate(`/client/${response.data._id}`, {
+        state: { name: response.data.name },
+      });
     } catch (error) {
       setLoginMessage("Login failed!");
       console.error("Error during login:", error.message);

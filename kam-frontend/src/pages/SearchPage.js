@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { getLeads } from "../services/api";
 
 const SearchPage = () => {
@@ -86,10 +86,12 @@ const SearchPage = () => {
           <ul>
             {results.map((lead) => (
               <li key={lead._id} className="p-4 border-b">
-                <h4 className="font-bold">{lead.name}</h4>
-                <p>Status: {lead.status}</p>
-                <p>Assigned KAM: {lead.assignedKAM}</p>
-                <p>Contact: {lead.contactNumber}</p>
+                <Link to={`/leads/${lead._id}`}>
+                  <h4 className="font-bold">{lead.name}</h4>
+                  <p>Status: {lead.status}</p>
+                  <p>Assigned KAM: {lead.assignedKAM}</p>
+                  <p>Contact: {lead.contactNumber}</p>
+                </Link>
               </li>
             ))}
           </ul>
