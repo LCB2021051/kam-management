@@ -160,3 +160,64 @@ exports.getLeadById = async (req, res) => {
     res.status(500).json({ error: "Server error while fetching lead" });
   }
 };
+
+const Call = require("../models/Call");
+const Order = require("../models/Order");
+
+exports.getLeadStats = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Calls made today
+    const callsToday = await Call.countDocuments({
+      restaurantId: id,
+      time: {
+        $gte: new Date().setHours(0, 0, 0, 0), // Start of today
+        $lte: new Date(), // Till now
+      },
+    });
+
+    // Orders completed today
+    const ordersToday = await Order.countDocuments({
+      restaurantId: id,
+      status: "Completed",
+      createdAt: {
+        $gte: new Date().setHours(0, 0, 0, 0), // Start of today
+        $lte: new Date(), // Till now
+      },
+    });
+
+    // Average calls per day
+    const totalCalls = await Call.countDocuments({ restaurantId: id });
+    const totalDays = await Call.distinct("date", { restaurantId: id }).then(
+      (dates) => dates.length
+    );
+    const averageCalls = totalDays ? (totalCalls / totalDays).toFixed(2) : 0;
+
+    // Average orders per day
+    const totalOrders = await Order.countDocuments({ restaurantId: id });
+    const orderDays = await Order.distinct("date", { restaurantId: id }).then(
+      (dates) => dates.length
+    );
+    const averageOrders = orderDays ? (totalOrders / orderDays).toFixed(2) : 0;
+
+    // Pending orders
+    const pendingOrders = await Order.countDocuments({
+      restaurantId: id,
+      status: "Pending",
+    });
+
+    res.status(200).json({
+      callsToday,
+      ordersToday,
+      averageCalls,
+      averageOrders,
+      pendingOrders, // Always include pendingOrders
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching lead statistics",
+      error: error.message,
+    });
+  }
+};

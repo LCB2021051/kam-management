@@ -4,7 +4,9 @@ import {
   getLeadById,
   addContactToLead,
   deleteContactFromLead,
+  simulateCall,
 } from "../services/api";
+import LeadStats from "../components/LeadStats";
 
 const LeadPage = () => {
   const { id } = useParams(); // Get the lead ID from the URL
@@ -16,6 +18,7 @@ const LeadPage = () => {
     email: "",
   });
 
+  const [callMessage, setCallMessage] = useState(""); // Message for call simulation feedback
   const navigate = useNavigate();
 
   // Fetch the lead details on page load
@@ -29,14 +32,25 @@ const LeadPage = () => {
 
   const handleAddContact = async (e) => {
     e.preventDefault();
-    const updatedLead = await addContactToLead(id, newContact); // Add contact API call
-    setLead(updatedLead); // Update lead data with the new contact
-    setNewContact({ name: "", role: "", phone: "", email: "" }); // Reset form
+    const updatedLead = await addContactToLead(id, newContact);
+    setLead(updatedLead);
+    setNewContact({ name: "", role: "", phone: "", email: "" });
   };
 
   const handleDeleteContact = async (contactId) => {
-    const updatedLead = await deleteContactFromLead(id, contactId); // Delete contact API call
-    setLead(updatedLead); // Update lead data
+    const updatedLead = await deleteContactFromLead(id, contactId);
+    setLead(updatedLead);
+  };
+
+  const handleSimulateCall = async () => {
+    try {
+      await simulateCall(id);
+      setCallMessage("Call simulated successfully!");
+      setTimeout(() => setCallMessage(""), 3000);
+    } catch (error) {
+      setCallMessage("Failed to simulate call.");
+      console.error("Error during call simulation:", error.message);
+    }
   };
 
   if (!lead) {
@@ -63,17 +77,28 @@ const LeadPage = () => {
             <span className="font-bold">Assigned KAM:</span> {lead.assignedKAM}
           </p>
         </div>
-        <button
-          onClick={() => navigate(`/leads/edit/${lead._id}`)}
-          className="ml-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Edit Lead
-        </button>
+        <div className="flex flex-col gap-2 p-3">
+          <button
+            onClick={() => navigate(`/leads/edit/${lead._id}`)}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Edit Lead
+          </button>
+          <button
+            onClick={handleSimulateCall}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            {callMessage ? "Calling..." : "Call Lead"}
+          </button>
+        </div>
       </div>
+
+      {/* Lead Statistics */}
+      <LeadStats leadId={id} />
 
       {/* Contacts Section */}
       <div className="mt-8">
-        <h2 className="text-xl font-bold mb-4">Contacts</h2>
+        <h2 className="text-xl font-bold mb-4 text-green-600">Contacts</h2>
         <ul>
           {lead.contacts.map((contact) => (
             <li

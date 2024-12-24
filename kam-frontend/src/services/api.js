@@ -62,15 +62,15 @@ export const getLeadById = async (id) => {
   }
 };
 
-export const updateContactFromLead = async (leadId, updatedContact) => {
-  try {
-    const response = await axios.put(
-      `${API_URL}/leads/${leadId}/contacts/${updatedContact._id}`,
-      updatedContact
-    );
-    return response.data; // Return updated lead data
-  } catch (error) {
-    console.error("Error updating contact:", error.message);
-    throw error;
-  }
+export const simulateCall = async (restaurantId) => {
+  const response = await axios.post(`${API_URL}/calls/simulate-call`, {
+    restaurantId,
+  });
+  return response.data;
+};
+
+export const getLeadStats = async (leadId) => {
+  if (!leadId) throw new Error("Lead ID is required");
+  const response = await axios.get(`${API_URL}/leads/${leadId}/stats`);
+  return response.data;
 };

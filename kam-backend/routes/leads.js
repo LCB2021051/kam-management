@@ -9,6 +9,7 @@ const {
   addContact,
   deleteContact,
   getLeadById,
+  getLeadStats,
 } = require("../controllers/leads");
 
 // Routes for leads
@@ -20,5 +21,6 @@ router.put("/:id", updateLead);
 router.delete("/:id", deleteLead);
 router.post("/:id/contacts", addContact);
 router.delete("/:id/contacts/:contactId", deleteContact);
+router.get("/:id/stats", getLeadStats);
 
 module.exports = router;
