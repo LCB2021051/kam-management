@@ -52,17 +52,8 @@ export const completeOrder = async (orderId) => {
 
 // Simulate a call
 export const simulateCall = async (restaurantId) => {
-  const response = await axios.post(`${API_BASE_URL}/simulate-call`, {
+  const response = await axios.post(`${API_BASE_URL}/calls/simulate-call`, {
     restaurantId,
-  });
-  return response.data;
-};
-
-// Simulate a transaction
-export const simulateTransaction = async (restaurantId, amount) => {
-  const response = await axios.post(`${API_BASE_URL}/simulate-transaction`, {
-    restaurantId,
-    amount,
   });
   return response.data;
 };

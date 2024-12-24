@@ -4,7 +4,6 @@ import {
   logout,
   simulateCall,
   simulateOrder,
-  simulateTransaction,
   getPendingOrders,
   completeOrder,
 } from "../services/api";
@@ -60,9 +59,9 @@ const Profile = () => {
 
   const handleCompleteOrder = async (orderId) => {
     try {
-      const res = await completeOrder(orderId); // Call API to mark the order as complete
+      const res = await completeOrder(orderId);
       setMessage(`Order ${orderId} marked as complete.`);
-      fetchPendingOrders(); // Refresh pending orders after marking as complete
+      fetchPendingOrders();
     } catch (error) {
       setMessage("Error completing order.");
       console.error("Error during order completion:", error.message);
@@ -76,16 +75,6 @@ const Profile = () => {
     } catch (error) {
       setMessage("Error simulating call.");
       console.error("Error during call simulation:", error.message);
-    }
-  };
-
-  const handleSimulateTransaction = async () => {
-    try {
-      await simulateTransaction(id, Math.floor(Math.random() * 1000) + 100);
-      setMessage("Transaction simulated successfully!");
-    } catch (error) {
-      setMessage("Error simulating transaction.");
-      console.error("Error during transaction simulation:", error.message);
     }
   };
 
@@ -103,12 +92,6 @@ const Profile = () => {
           Restaurant ID: <span className="font-bold">{id}</span>
         </p>
         <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={handleSimulateTransaction}
-            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-          >
-            Simulate Transaction
-          </button>
           <button
             onClick={handleSimulateCall}
             className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
@@ -145,7 +128,7 @@ const Profile = () => {
                     onClick={() => handleCompleteOrder(order._id)}
                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                   >
-                    Mark as Complete
+                    Done
                   </button>
                 </li>
               ))}
