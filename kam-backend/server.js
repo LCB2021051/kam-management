@@ -12,11 +12,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Routes Placeholder
+// For Leads
 app.use("/api/leads", require("./routes/leads"));
 
 // for client
 app.use("/api/auth", require("./routes/auth"));
+
+// for orders
+app.use("/api/orders", require("./routes/orders"));
 
 // Start the server
 const PORT = process.env.PORT || 5000;

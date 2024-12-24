@@ -1,29 +1,91 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { logout } from "../services/api";
+import {
+  logout,
+  simulateCall,
+  simulateOrder,
+  simulateTransaction,
+  getPendingOrders,
+  completeOrder,
+} from "../services/api";
 
 const Profile = () => {
-  const { id } = useParams(); // Get restaurant ID from URL params
-  const location = useLocation(); // Access state passed during navigation
-  const navigate = useNavigate(); // Initialize navigate
+  const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const [message, setMessage] = useState(""); // Feedback message for task simulation
-  const { username, name } = location.state || {}; // Extract name from state or fallback
+  const [message, setMessage] = useState("");
+  const [pendingOrders, setPendingOrders] = useState([]); // State to store pending orders
+  const { username, name } = location.state || {};
 
-  const handleTask = (task) => {
-    setMessage(`Simulated: ${task}`);
-    setTimeout(() => setMessage(""), 3000); // Clear message after 3 seconds
-  };
+  // Fetch pending orders on component mount
+  useEffect(() => {
+    fetchPendingOrders();
+  }, []);
 
   const handleLogout = async () => {
     try {
-      if (!username) throw new Error("Restaurant name is missing.");
-      await logout(username); // Pass the restaurant name to the logout API
+      if (!username) throw new Error("Restaurant username is missing.");
+      await logout(username);
       alert("Logout successful!");
-      navigate("/"); // Redirect to the login page
+      navigate("/");
     } catch (error) {
       alert("Logout failed!");
       console.error("Error during logout:", error.message);
+    }
+  };
+
+  const handleSimulateOrder = async () => {
+    try {
+      const res = await simulateOrder(id, [
+        { name: "Item 1", quantity: 2, price: 50 },
+        { name: "Item 2", quantity: 1, price: 100 },
+      ]);
+      setMessage("Order simulated successfully!");
+      fetchPendingOrders();
+    } catch (error) {
+      setMessage("Error simulating order.");
+      console.error("Error during order simulation:", error.message);
+    }
+  };
+
+  const fetchPendingOrders = async () => {
+    try {
+      const response = await getPendingOrders(id); // Fetch pending orders from API
+      setPendingOrders(response);
+    } catch (error) {
+      console.error("Error fetching pending orders:", error.message);
+    }
+  };
+
+  const handleCompleteOrder = async (orderId) => {
+    try {
+      const res = await completeOrder(orderId); // Call API to mark the order as complete
+      setMessage(`Order ${orderId} marked as complete.`);
+      fetchPendingOrders(); // Refresh pending orders after marking as complete
+    } catch (error) {
+      setMessage("Error completing order.");
+      console.error("Error during order completion:", error.message);
+    }
+  };
+
+  const handleSimulateCall = async () => {
+    try {
+      await simulateCall(id);
+      setMessage("Call simulated successfully!");
+    } catch (error) {
+      setMessage("Error simulating call.");
+      console.error("Error during call simulation:", error.message);
+    }
+  };
+
+  const handleSimulateTransaction = async () => {
+    try {
+      await simulateTransaction(id, Math.floor(Math.random() * 1000) + 100);
+      setMessage("Transaction simulated successfully!");
+    } catch (error) {
+      setMessage("Error simulating transaction.");
+      console.error("Error during transaction simulation:", error.message);
     }
   };
 
@@ -42,28 +104,22 @@ const Profile = () => {
         </p>
         <div className="grid grid-cols-2 gap-4">
           <button
-            onClick={() => handleTask("Transaction")}
-            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            onClick={handleSimulateTransaction}
+            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
           >
             Simulate Transaction
           </button>
           <button
-            onClick={() => handleTask("Call")}
-            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            onClick={handleSimulateCall}
+            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
           >
             Simulate Call
           </button>
           <button
-            onClick={() => handleTask("Order Received")}
-            className="bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+            onClick={handleSimulateOrder}
+            className="bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600"
           >
-            Simulate Order Received
-          </button>
-          <button
-            onClick={() => handleTask("Order Completed")}
-            className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-          >
-            Simulate Order Completed
+            Simulate Get-Order
           </button>
         </div>
         {message && (
@@ -71,9 +127,37 @@ const Profile = () => {
             {message}
           </p>
         )}
+
+        {/* Pending Orders Section */}
+        <div className="mt-6">
+          <h3 className="text-xl font-bold mb-4">Pending Orders</h3>
+          {pendingOrders.length > 0 ? (
+            <ul>
+              {pendingOrders.map((order) => (
+                <li
+                  key={order._id}
+                  className="p-4 border rounded mb-2 bg-gray-100 flex justify-between items-center"
+                >
+                  <p>
+                    <span className="font-bold">Order ID:</span> {order._id}
+                  </p>
+                  <button
+                    onClick={() => handleCompleteOrder(order._id)}
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  >
+                    Mark as Complete
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No pending orders found.</p>
+          )}
+        </div>
+
         <button
           onClick={handleLogout}
-          className="mt-6 w-full bg-gray-700 text-white py-2 px-4 rounded hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-2"
+          className="mt-6 w-full bg-gray-700 text-white py-2 px-4 rounded hover:bg-gray-800"
         >
           Logout
         </button>
