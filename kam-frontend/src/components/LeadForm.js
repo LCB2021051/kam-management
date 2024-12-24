@@ -20,10 +20,11 @@ const LeadForm = ({ onLeadAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const newLead = await createLead(formData); // Call API to create lead
+      const Response = await createLead(formData);
       if (onLeadAdded) {
-        onLeadAdded(newLead); // Notify parent component
+        onLeadAdded(Response);
       }
+
       setFormData({
         name: "",
         address: "",
@@ -32,8 +33,7 @@ const LeadForm = ({ onLeadAdded }) => {
         assignedKAM: "",
       });
 
-      // Navigate to the newly created LeadPage
-      navigate(`/leads/${newLead._id}`);
+      navigate(`/leads/${Response.lead.id}`);
     } catch (error) {
       console.error("Error creating lead:", error.message);
     }

@@ -8,7 +8,7 @@ const Profile = () => {
   const navigate = useNavigate(); // Initialize navigate
 
   const [message, setMessage] = useState(""); // Feedback message for task simulation
-  const { name } = location.state || {}; // Extract name from state or fallback
+  const { username, name } = location.state || {}; // Extract name from state or fallback
 
   const handleTask = (task) => {
     setMessage(`Simulated: ${task}`);
@@ -17,8 +17,8 @@ const Profile = () => {
 
   const handleLogout = async () => {
     try {
-      if (!name) throw new Error("Restaurant name is missing.");
-      await logout(name); // Pass the restaurant name to the logout API
+      if (!username) throw new Error("Restaurant name is missing.");
+      await logout(username); // Pass the restaurant name to the logout API
       alert("Logout successful!");
       navigate("/"); // Redirect to the login page
     } catch (error) {

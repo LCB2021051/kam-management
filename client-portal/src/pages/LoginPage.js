@@ -1,18 +1,19 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import { login } from "../services/api.js";
 
 const LoginPage = () => {
-  const [name, setName] = useState(""); // Input for restaurant name
+  const [username, setUsername] = useState(""); // Input for restaurant username
+  const [password, setPassword] = useState(""); // Input for restaurant password
   const [loginMessage, setLoginMessage] = useState(""); // Feedback message for login status
   const navigate = useNavigate(); // Initialize navigate
 
   const handleLogin = async () => {
     try {
-      const response = await login(name); // Call login API
+      const response = await login({ username, password });
       setLoginMessage("Login successful!");
-      navigate(`/client/${response.data._id}`, {
-        state: { name: response.data.name },
+      navigate(`/client/${response.lead.id}`, {
+        state: { username: response.lead.username, name: response.lead.name },
       });
     } catch (error) {
       setLoginMessage("Login failed!");
@@ -28,9 +29,16 @@ const LoginPage = () => {
         </h2>
         <input
           type="text"
-          placeholder="Enter your restaurant name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter your username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="password"
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button

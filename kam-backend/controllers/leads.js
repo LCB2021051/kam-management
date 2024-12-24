@@ -1,4 +1,5 @@
 const Lead = require("../models/Lead");
+const bcrypt = require("bcrypt");
 
 // Get all leads
 exports.getLeads = async (req, res) => {
@@ -13,9 +14,43 @@ exports.getLeads = async (req, res) => {
 // Create a new lead
 exports.createLead = async (req, res) => {
   try {
-    const lead = new Lead(req.body);
+    // Extract data from the request
+    const { name, address, contactNumber, assignedKAM, contacts } = req.body;
+
+    // Generate credentials
+    const username = name.toLowerCase().replace(/\s+/g, "_"); // Username from name
+    const password = Math.random().toString(36).slice(-8); // Random 8-character password
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create the lead with the generated credentials
+    const lead = new Lead({
+      name,
+      address,
+      contactNumber,
+      status: "New", // Default status
+      assignedKAM,
+      contacts,
+      username,
+      password: hashedPassword, // Store hashed password
+    });
+
     await lead.save();
-    res.status(201).json(lead);
+
+    // Credentials
+    console.log("Credentials: ", username, " ", password);
+
+    // Return the lead details and plain-text password
+    res.status(201).json({
+      message: "Lead created successfully",
+      lead: {
+        id: lead._id,
+        name: lead.name,
+        assignedKAM: lead.assignedKAM,
+        status: lead.status,
+      },
+    });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -71,9 +106,6 @@ exports.addContact = async (req, res) => {
     if (!lead) {
       return res.status(404).json({ message: "Lead not found" });
     }
-
-    // Log the incoming data
-    console.log("Incoming Contact Data:", req.body);
 
     // Validate incoming contact data
     const { name, role, phone, email } = req.body;

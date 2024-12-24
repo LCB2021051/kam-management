@@ -15,13 +15,20 @@ const SearchPage = () => {
   useEffect(() => {
     const fetchLeads = async () => {
       const allLeads = await getLeads();
+
       const filteredLeads = allLeads.filter((lead) =>
-        Object.entries(filters).every(([key, value]) =>
-          value ? lead[key]?.toLowerCase().includes(value.toLowerCase()) : true
-        )
+        Object.entries(filters).every(([key, value]) => {
+          if (!value) return true; // Skip if the filter value is empty
+          if (key === "status") {
+            return lead[key] === value; // Exact match for status
+          }
+          return lead[key]?.toLowerCase().includes(value.toLowerCase()); // Partial match for other fields
+        })
       );
+
       setResults(filteredLeads);
     };
+
     fetchLeads();
   }, [filters]);
 

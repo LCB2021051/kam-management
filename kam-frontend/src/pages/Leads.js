@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getLeads, deleteLead } from "../services/api"; // Import deleteLead API
-import LeadForm from "../components/LeadForm";
 
 const Leads = () => {
   const [leads, setLeads] = useState([]);
-  const [showForm, setShowForm] = useState(false); // Toggle form visibility
   const navigate = useNavigate();
 
   // Fetch leads on component mount
@@ -17,10 +15,10 @@ const Leads = () => {
     fetchLeads();
   }, []);
 
-  const handleLeadAdded = (newLead) => {
-    // Add the new lead to the leads list
-    setLeads((prevLeads) => [...prevLeads, newLead]);
-  };
+  // const handleLeadAdded = (newLead) => {
+  //   // Add the new lead to the leads list
+  //   setLeads((prevLeads) => [...prevLeads, newLead]);
+  // };
 
   const handleDeleteLead = async (id) => {
     try {
@@ -74,13 +72,6 @@ const Leads = () => {
           </li>
         ))}
       </ul>
-
-      {/* Conditionally Render the LeadForm */}
-      {showForm && (
-        <div className="mt-6">
-          <LeadForm onLeadAdded={handleLeadAdded} />
-        </div>
-      )}
     </div>
   );
 };

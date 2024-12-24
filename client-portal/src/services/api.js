@@ -2,13 +2,22 @@ import axios from "axios";
 
 const API_BASE_URL = "http://localhost:5000/api/auth";
 
-export const login = async (name) => {
-  if (!name) throw new Error("Restaurant name is required");
-  const response = await axios.post(`${API_BASE_URL}/login`, { name });
+// Login API
+export const login = async ({ username, password }) => {
+  if (!username || !password)
+    throw new Error("Username and password are required");
+
+  const response = await axios.post(`${API_BASE_URL}/login`, {
+    username,
+    password,
+  });
+
   return response.data;
 };
 
-export const logout = async (name) => {
-  const response = await axios.post(`${API_BASE_URL}/logout`, { name });
+// Logout API
+export const logout = async (username) => {
+  if (!username) throw new Error("Username is required for logout");
+  const response = await axios.post(`${API_BASE_URL}/logout`, { username });
   return response.data;
 };
