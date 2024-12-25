@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getLeads, deleteLead } from "../services/api"; // Import deleteLead API
+import { getLeads, deleteLead } from "../services/api";
 
 const Leads = () => {
   const [leads, setLeads] = useState([]);
@@ -15,11 +15,6 @@ const Leads = () => {
     fetchLeads();
   }, []);
 
-  // const handleLeadAdded = (newLead) => {
-  //   // Add the new lead to the leads list
-  //   setLeads((prevLeads) => [...prevLeads, newLead]);
-  // };
-
   const handleDeleteLead = async (id) => {
     try {
       await deleteLead(id); // Call API to delete the lead
@@ -31,6 +26,25 @@ const Leads = () => {
 
   const handleEditLead = (id) => {
     navigate(`/leads/${id}`);
+  };
+
+  const formatTimeAgo = (lastCallTime) => {
+    if (!lastCallTime) return "No calls yet";
+
+    const now = new Date();
+    const lastCall = new Date(lastCallTime);
+    const diffInMs = now - lastCall;
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const hours = Math.floor(diffInMinutes / 60);
+    const minutes = diffInMinutes % 60;
+
+    if (hours > 0) {
+      return `Called ${hours}hr ${minutes}min ago`;
+    } else if (minutes > 0) {
+      return `Called ${minutes}min ago`;
+    } else {
+      return "Called just now";
+    }
   };
 
   return (
@@ -56,6 +70,11 @@ const Leads = () => {
               <p>{lead.contactNumber}</p>
             </div>
             <div className="flex space-x-2">
+              <div>
+                <p className="text-red-500 font-medium mr-5">
+                  {formatTimeAgo(lead.lastCallTime)}
+                </p>
+              </div>
               <button
                 onClick={() => handleEditLead(lead._id)}
                 className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"

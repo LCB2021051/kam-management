@@ -10,7 +10,7 @@ const LeadStats = ({ leadId }) => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const data = await getLeadStats(leadId); // Fetch stats from API
+        const data = await getLeadStats(leadId);
         setStats(data);
       } catch (err) {
         setError("Failed to load statistics.");

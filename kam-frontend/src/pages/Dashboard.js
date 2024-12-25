@@ -25,7 +25,7 @@ const Dashboard = () => {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         <div
           className="p-4 bg-blue-100 rounded cursor-pointer"
           onClick={() => handleSearchRedirect("")}
@@ -61,11 +61,25 @@ const Dashboard = () => {
           {stats.recentLeads.map((lead) => (
             <li
               key={lead._id}
-              className="p-2 border-b cursor-pointer"
+              className="p-2 border-b flex justify-between items-center cursor-pointer"
               onClick={() => navigate(`/leads/${lead._id}`)}
             >
-              <p className="font-bold">{lead.name}</p>
-              <p>{lead.address}</p>
+              <div>
+                <p className="font-bold">{lead.name}</p>
+                <p>{lead.address}</p>
+              </div>
+              <div className="text-gray-500 text-sm">
+                {lead.lastCallTime
+                  ? new Date(lead.lastCallTime).toLocaleString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })
+                  : "No calls yet"}
+              </div>
             </li>
           ))}
         </ul>
