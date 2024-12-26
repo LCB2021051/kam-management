@@ -10,27 +10,43 @@ const SearchPage = () => {
     assignedKAM: "",
   });
   const [results, setResults] = useState([]);
+  const [sortBy, setSortBy] = useState("");
 
   // Fetch and filter leads
   useEffect(() => {
     const fetchLeads = async () => {
       const allLeads = await getLeads();
 
+      // Apply filters
       const filteredLeads = allLeads.filter((lead) =>
         Object.entries(filters).every(([key, value]) => {
-          if (!value) return true; // Skip if the filter value is empty
+          if (!value) return true;
           if (key === "status") {
-            return lead[key] === value; // Exact match for status
+            return lead[key] === value;
           }
-          return lead[key]?.toLowerCase().includes(value.toLowerCase()); // Partial match for other fields
+          return lead[key]?.toLowerCase().includes(value.toLowerCase());
         })
       );
 
-      setResults(filteredLeads);
+      // Apply sorting
+      const sortedLeads = [...filteredLeads].sort((a, b) => {
+        if (sortBy === "averageInteractions") {
+          return (b.averageInteractions || 0) - (a.averageInteractions || 0);
+        } else if (sortBy === "averageOrders") {
+          return (b.averageOrders || 0) - (a.averageOrders || 0);
+        } else if (sortBy === "lastInteractionTime") {
+          return (
+            new Date(b.lastInteractionTime) - new Date(a.lastInteractionTime)
+          );
+        }
+        return 0;
+      });
+
+      setResults(sortedLeads);
     };
 
     fetchLeads();
-  }, [filters]);
+  }, [filters, sortBy]);
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -39,6 +55,11 @@ const SearchPage = () => {
       ...prevFilters,
       [name]: value,
     }));
+  };
+
+  // Handle sorting option change
+  const handleSortChange = (e) => {
+    setSortBy(e.target.value);
   };
 
   return (
@@ -83,6 +104,19 @@ const SearchPage = () => {
               placeholder="Search by KAM"
             />
           </div>
+          <div className="mb-4">
+            <label className="block mb-1">Sort By</label>
+            <select
+              value={sortBy}
+              onChange={handleSortChange}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">Default (No Sorting)</option>
+              <option value="averageInteractions">Average Interactions</option>
+              <option value="averageOrders">Average Orders</option>
+              <option value="lastInteractionTime">Last Interaction Time</option>
+            </select>
+          </div>
         </form>
       </div>
 
@@ -93,11 +127,32 @@ const SearchPage = () => {
           <ul>
             {results.map((lead) => (
               <li key={lead._id} className="p-4 border-b">
-                <Link to={`/leads/${lead._id}`}>
-                  <h4 className="font-bold">{lead.name}</h4>
-                  <p>Status: {lead.status}</p>
-                  <p>Assigned KAM: {lead.assignedKAM}</p>
-                  <p>Contact: {lead.contactNumber}</p>
+                <Link
+                  to={`/leads/${lead._id}`}
+                  className="flex justify-between"
+                >
+                  <div>
+                    <div className="flex flex-row gap-3">
+                      <h4 className="font-bold">{lead.name}</h4>
+                      {lead.status === "Active" ? (
+                        <p className="text-green-500">Active</p>
+                      ) : (
+                        <p className="text-gray-500">Inactive</p>
+                      )}
+                    </div>
+                    <p>Assigned KAM: {lead.assignedKAM}</p>
+                    <p>Contact: {lead.contactNumber}</p>
+                  </div>
+                  <div>
+                    <p>Average Interactions: {lead.averageInteractions || 0}</p>
+                    <p>Average Orders: {lead.averageOrders || 0}</p>
+                    <p>
+                      Last Interaction:{" "}
+                      {lead.lastInteractionTime
+                        ? new Date(lead.lastInteractionTime).toLocaleString()
+                        : "No interactions yet"}
+                    </p>
+                  </div>
                 </Link>
               </li>
             ))}

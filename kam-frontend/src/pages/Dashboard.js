@@ -15,7 +15,20 @@ const Dashboard = () => {
   }, []);
 
   const handleSearchRedirect = (status) => {
-    navigate("/search", { state: { status } }); // Navigate to Search Page with status filter
+    navigate("/search", { state: { status } });
+  };
+
+  const formatDateTime = (dateTime) => {
+    return dateTime
+      ? new Date(dateTime).toLocaleString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })
+      : "No interactions yet";
   };
 
   if (!stats) {
@@ -68,17 +81,17 @@ const Dashboard = () => {
                 <p className="font-bold">{lead.name}</p>
                 <p>{lead.address}</p>
               </div>
-              <div className="text-gray-500 text-sm">
-                {lead.lastCallTime
-                  ? new Date(lead.lastCallTime).toLocaleString("en-GB", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })
-                  : "No calls yet"}
+              <div className="flex flex-row gap-5">
+                <div>
+                  {lead.status === "Active" ? (
+                    <p className="text-green-500">Active</p>
+                  ) : (
+                    <p className="text-gray-500">Inactive</p>
+                  )}
+                </div>
+                <div className="text-gray-500 text-sm">
+                  {formatDateTime(lead.lastInteractionTime)}
+                </div>
               </div>
             </li>
           ))}

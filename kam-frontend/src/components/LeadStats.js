@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getLeadStats } from "../services/api"; // Add API function
+import { getLeadStats } from "../services/api";
 
 const LeadStats = ({ leadId }) => {
   const [stats, setStats] = useState(null);
@@ -45,9 +45,11 @@ const LeadStats = ({ leadId }) => {
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="p-4 bg-blue-100 rounded-lg shadow-md text-center">
-            <h4 className="text-xl font-semibold text-blue-700">Calls Today</h4>
+            <h4 className="text-xl font-semibold text-blue-700">
+              Interactions Today
+            </h4>
             <p className="text-3xl font-bold text-blue-800">
-              {stats.callsToday}
+              {stats.interactionsToday}
             </p>
           </div>
           <div className="p-4 bg-green-100 rounded-lg shadow-md text-center">
@@ -60,10 +62,10 @@ const LeadStats = ({ leadId }) => {
           </div>
           <div className="p-4 bg-yellow-100 rounded-lg shadow-md text-center">
             <h4 className="text-xl font-semibold text-yellow-700">
-              Avg Calls/Day
+              Avg Interactions/Day
             </h4>
             <p className="text-3xl font-bold text-yellow-800">
-              {stats.averageCalls}
+              {stats.averageInteractions}
             </p>
           </div>
           <div className="p-4 bg-red-100 rounded-lg shadow-md text-center">
@@ -80,6 +82,16 @@ const LeadStats = ({ leadId }) => {
             </h4>
             <p className="text-3xl font-bold text-purple-800">
               {stats.pendingOrders}
+            </p>
+          </div>
+          <div className="p-4 bg-teal-100 rounded-lg shadow-md text-center">
+            <h4 className="text-xl font-semibold text-teal-700">
+              Last Interaction
+            </h4>
+            <p className="text-lg text-teal-800">
+              {stats.lastInteractionTime
+                ? new Date(stats.lastInteractionTime).toLocaleString()
+                : "No interactions yet"}
             </p>
           </div>
         </div>

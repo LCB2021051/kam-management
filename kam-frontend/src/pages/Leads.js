@@ -9,8 +9,12 @@ const Leads = () => {
   // Fetch leads on component mount
   useEffect(() => {
     const fetchLeads = async () => {
-      const data = await getLeads();
-      setLeads(data);
+      try {
+        const data = await getLeads();
+        setLeads(data);
+      } catch (error) {
+        console.error("Error fetching leads:", error.message);
+      }
     };
     fetchLeads();
   }, []);
@@ -28,22 +32,22 @@ const Leads = () => {
     navigate(`/leads/${id}`);
   };
 
-  const formatTimeAgo = (lastCallTime) => {
-    if (!lastCallTime) return "No calls yet";
+  const formatTimeAgo = (lastInteractionTime) => {
+    if (!lastInteractionTime) return "No interactions yet";
 
     const now = new Date();
-    const lastCall = new Date(lastCallTime);
-    const diffInMs = now - lastCall;
+    const lastInteraction = new Date(lastInteractionTime);
+    const diffInMs = now - lastInteraction;
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
     const hours = Math.floor(diffInMinutes / 60);
     const minutes = diffInMinutes % 60;
 
     if (hours > 0) {
-      return `Called ${hours}hr ${minutes}min ago`;
+      return `Interacted ${hours}hr ${minutes}min ago`;
     } else if (minutes > 0) {
-      return `Called ${minutes}min ago`;
+      return `Interacted ${minutes}min ago`;
     } else {
-      return "Called just now";
+      return "Interacted just now";
     }
   };
 
@@ -65,14 +69,22 @@ const Leads = () => {
             className="p-4 border-b flex justify-between items-center"
           >
             <div>
-              <h3 className="text-lg font-bold">{lead.name}</h3>
+              <div className="flex flex-row gap-5 items-center">
+                <h3 className="text-lg font-bold">{lead.name}</h3>
+                {lead.status === "Active" ? (
+                  <p className="text-green-500 font-medium">Active</p>
+                ) : (
+                  <p className="text-gray-500 font-medium">Inactive</p>
+                )}
+              </div>
               <p>{lead.address}</p>
               <p>{lead.contactNumber}</p>
             </div>
-            <div className="flex space-x-2">
+
+            <div className="flex space-x-4 items-center">
               <div>
-                <p className="text-red-500 font-medium mr-5">
-                  {formatTimeAgo(lead.lastCallTime)}
+                <p className="text-red-500 font-medium">
+                  {formatTimeAgo(lead.lastInteractionTime)}
                 </p>
               </div>
               <button

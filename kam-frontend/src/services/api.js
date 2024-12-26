@@ -62,10 +62,18 @@ export const getLeadById = async (id) => {
   }
 };
 
-export const simulateCall = async (restaurantId) => {
+export const simulateCall = async (restaurantId, to, from, about) => {
+  if (!restaurantId || !to || !from || !about) {
+    throw new Error("All fields (restaurantId, to, from, about) are required.");
+  }
+
   const response = await axios.post(`${API_URL}/calls/simulate-call`, {
     restaurantId,
+    to,
+    from,
+    about,
   });
+
   return response.data;
 };
 
@@ -73,4 +81,43 @@ export const getLeadStats = async (leadId) => {
   if (!leadId) throw new Error("Lead ID is required");
   const response = await axios.get(`${API_URL}/leads/${leadId}/stats`);
   return response.data;
+};
+
+// Fetch interactions for a specific restaurant
+export const getInteractions = async (restaurantId) => {
+  if (!restaurantId) {
+    throw new Error("Restaurant ID is required to fetch interactions.");
+  }
+
+  try {
+    const response = await axios.get(`${API_URL}/interactions/${restaurantId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching interactions:", error.message);
+
+    const errorMessage =
+      error.response?.data?.message || "Failed to fetch interactions.";
+    throw new Error(errorMessage);
+  }
+};
+
+// Add a new interaction for a specific restaurant
+export const addInteraction = async (restaurantId, interactionData) => {
+  if (!restaurantId || !interactionData) {
+    throw new Error("Restaurant ID and interaction data are required.");
+  }
+
+  try {
+    const response = await axios.post(`${API_URL}/interactions`, {
+      restaurantId,
+      ...interactionData,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error adding interaction:", error.message);
+
+    const errorMessage =
+      error.response?.data?.message || "Failed to add interaction.";
+    throw new Error(errorMessage);
+  }
 };

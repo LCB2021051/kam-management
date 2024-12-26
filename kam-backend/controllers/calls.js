@@ -1,11 +1,24 @@
 const Call = require("../models/Call");
 
 exports.simulateCall = async (req, res) => {
-  const { restaurantId } = req.body; // Get restaurant ID from request body
+  const { restaurantId, to, from, about } = req.body; // Get required fields from the request body
 
   try {
+    // Validate required fields
+    if (!restaurantId || !to || !from || !about) {
+      return res
+        .status(400)
+        .json({
+          message: "All fields (restaurantId, to, from, about) are required.",
+        });
+    }
+
+    // Create a new call
     const call = new Call({
       restaurantId,
+      to,
+      from,
+      about,
     });
 
     await call.save();

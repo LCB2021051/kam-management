@@ -50,10 +50,23 @@ export const completeOrder = async (orderId) => {
   return response.data;
 };
 
-// Simulate a call
-export const simulateCall = async (restaurantId) => {
-  const response = await axios.post(`${API_BASE_URL}/calls/simulate-call`, {
-    restaurantId,
-  });
-  return response.data;
+// addInteractions by Client
+export const simulateCall = async (restaurantId, interactionData) => {
+  if (!restaurantId || !interactionData) {
+    throw new Error("Restaurant ID and interaction data are required.");
+  }
+
+  try {
+    const response = await axios.post(`${API_BASE_URL}/interactions`, {
+      restaurantId,
+      ...interactionData,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error adding interaction:", error.message);
+
+    const errorMessage =
+      error.response?.data?.message || "Failed to add interaction.";
+    throw new Error(errorMessage);
+  }
 };

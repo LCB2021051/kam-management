@@ -24,6 +24,9 @@ app.use("/api/orders", require("./routes/orders"));
 // for calls
 app.use("/api/calls", require("./routes/calls"));
 
+// for interactions
+app.use("/api/interactions", require("./routes/interactions"));
+
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -4,24 +4,20 @@ import {
   getLeadById,
   addContactToLead,
   deleteContactFromLead,
-  simulateCall,
 } from "../services/api";
 import LeadStats from "../components/LeadStats";
+import Interaction from "../components/Interaction";
+import Contact from "../components/Contact";
+import AddContactForm from "../components/AddContactForm";
+import SimulateButton from "../components/SimulateButton";
 
 const LeadPage = () => {
-  const { id } = useParams(); // Get the lead ID from the URL
+  const { id } = useParams();
   const [lead, setLead] = useState(null);
-  const [newContact, setNewContact] = useState({
-    name: "",
-    role: "",
-    phone: "",
-    email: "",
-  });
 
-  const [callMessage, setCallMessage] = useState(""); // Message for call simulation feedback
+  const [callMessage, setCallMessage] = useState("");
   const navigate = useNavigate();
 
-  // Fetch the lead details on page load
   useEffect(() => {
     const fetchLead = async () => {
       const data = await getLeadById(id);
@@ -30,27 +26,14 @@ const LeadPage = () => {
     fetchLead();
   }, [id]);
 
-  const handleAddContact = async (e) => {
-    e.preventDefault();
-    const updatedLead = await addContactToLead(id, newContact);
+  const handleAddContact = async (contact) => {
+    const updatedLead = await addContactToLead(id, contact);
     setLead(updatedLead);
-    setNewContact({ name: "", role: "", phone: "", email: "" });
   };
 
   const handleDeleteContact = async (contactId) => {
     const updatedLead = await deleteContactFromLead(id, contactId);
     setLead(updatedLead);
-  };
-
-  const handleSimulateCall = async () => {
-    try {
-      await simulateCall(id);
-      setCallMessage("Call simulated successfully!");
-      setTimeout(() => setCallMessage(""), 3000);
-    } catch (error) {
-      setCallMessage("Failed to simulate call.");
-      console.error("Error during call simulation:", error.message);
-    }
   };
 
   if (!lead) {
@@ -84,107 +67,43 @@ const LeadPage = () => {
           >
             Edit Lead
           </button>
-          <button
-            onClick={handleSimulateCall}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
-            {callMessage ? "Calling..." : "Call Lead"}
-          </button>
+          <SimulateButton
+            restaurantId={id}
+            to={lead.assignedKAM}
+            from="Admin"
+            type="Call"
+          />
+          <SimulateButton
+            restaurantId={id}
+            to={lead.assignedKAM}
+            from="Admin"
+            type="Email"
+          />
         </div>
       </div>
 
       {/* Lead Statistics */}
       <LeadStats leadId={id} />
 
+      {/* Interaction */}
+      <Interaction restaurantId={id} lead={lead} />
+
       {/* Contacts Section */}
       <div className="mt-8">
         <h2 className="text-xl font-bold mb-4 text-green-600">Contacts</h2>
         <ul>
           {lead.contacts.map((contact) => (
-            <li
+            <Contact
               key={contact._id}
-              className="p-4 border-b flex justify-between items-center"
-            >
-              <div>
-                <p>
-                  <span className="font-bold">Name:</span> {contact.name}
-                </p>
-                <p>
-                  <span className="font-bold">Role:</span> {contact.role}
-                </p>
-                <p>
-                  <span className="font-bold">Phone:</span> {contact.phone}
-                </p>
-                <p>
-                  <span className="font-bold">Email:</span> {contact.email}
-                </p>
-              </div>
-              <div className="flex space-x-2 mt-2">
-                <button
-                  onClick={() => handleDeleteContact(contact._id)}
-                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
+              contact={contact}
+              restaurantId={id}
+              handleDeleteContact={handleDeleteContact}
+            />
           ))}
         </ul>
 
         {/* Add New Contact Form */}
-        <div className="mt-4">
-          <h3 className="text-lg font-bold mb-2">Add New Contact</h3>
-          <form onSubmit={handleAddContact}>
-            <div className="flex flex-col space-y-2">
-              <input
-                type="text"
-                placeholder="Name"
-                value={newContact.name}
-                onChange={(e) =>
-                  setNewContact({ ...newContact, name: e.target.value })
-                }
-                className="p-2 border rounded"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Role"
-                value={newContact.role}
-                onChange={(e) =>
-                  setNewContact({ ...newContact, role: e.target.value })
-                }
-                className="p-2 border rounded"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Phone"
-                value={newContact.phone}
-                onChange={(e) =>
-                  setNewContact({ ...newContact, phone: e.target.value })
-                }
-                className="p-2 border rounded"
-                required
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={newContact.email}
-                onChange={(e) =>
-                  setNewContact({ ...newContact, email: e.target.value })
-                }
-                className="p-2 border rounded"
-                required
-              />
-              <button
-                type="submit"
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-              >
-                Add Contact
-              </button>
-            </div>
-          </form>
-        </div>
+        <AddContactForm onAddContact={handleAddContact} />
       </div>
     </div>
   );

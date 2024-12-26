@@ -1,7 +1,10 @@
 const Lead = require("../models/Lead");
 const Call = require("../models/Call");
 const Order = require("../models/Order");
+const Interaction = require("../models/Interaction");
 const bcrypt = require("bcrypt");
+
+const mongoose = require("mongoose");
 
 // Create a new lead
 exports.createLead = async (req, res) => {
@@ -21,11 +24,11 @@ exports.createLead = async (req, res) => {
       name,
       address,
       contactNumber,
-      status: "New", // Default status
+      status: "New",
       assignedKAM,
       contacts,
       username,
-      password: hashedPassword, // Store hashed password
+      password: hashedPassword,
     });
 
     await lead.save();
@@ -79,30 +82,30 @@ exports.getDashboardStats = async (req, res) => {
     const activeLeads = await Lead.countDocuments({ status: "Active" });
     const inactiveLeads = await Lead.countDocuments({ status: "Inactive" });
 
-    // Aggregate leads with their last call time
+    // Aggregate leads with their last interaction time
     const recentLeads = await Lead.aggregate([
       {
         $lookup: {
-          from: "calls",
+          from: "interactions", // Use interactions collection
           localField: "_id",
           foreignField: "restaurantId",
-          as: "calls",
+          as: "interactions",
         },
       },
       {
         $addFields: {
-          lastCallTime: {
-            $max: "$calls.time",
+          lastInteractionTime: {
+            $max: "$interactions.time", // Get the latest interaction time
           },
         },
       },
       {
         $sort: {
-          lastCallTime: -1,
+          lastInteractionTime: -1, // Sort by latest interaction time
         },
       },
       {
-        $limit: 5,
+        $limit: 5, // Limit to 5 recent leads
       },
       {
         $project: {
@@ -110,7 +113,7 @@ exports.getDashboardStats = async (req, res) => {
           address: 1,
           contactNumber: 1,
           status: 1,
-          lastCallTime: 1,
+          lastInteractionTime: 1, // Include the latest interaction time
         },
       },
     ]);
@@ -123,39 +126,106 @@ exports.getDashboardStats = async (req, res) => {
       recentLeads,
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error fetching dashboard stats", error: err.message });
+    res.status(500).json({
+      message: "Error fetching dashboard stats",
+      error: err.message,
+    });
   }
 };
 
-// Get all leads
+// Helper function to calculate average interactions
+const calculateAverageInteractions = async (restaurantId) => {
+  const interactionData = await Interaction.aggregate([
+    {
+      $match: { restaurantId: new mongoose.Types.ObjectId(restaurantId) },
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: "%Y-%m-%d", date: "$time" },
+        },
+      },
+    },
+  ]);
+
+  const totalInteractions = await Interaction.countDocuments({ restaurantId });
+  const totalInteractionDays = interactionData.length;
+
+  return totalInteractionDays > 0
+    ? Math.floor(totalInteractions / totalInteractionDays)
+    : 0;
+};
+
+const getLastInteractionTime = async (leadId) => {
+  const lastInteraction = await Interaction.findOne({ restaurantId: leadId })
+    .sort({ time: -1 }) // Sort by time descending
+    .select("time"); // Only fetch the `time` field
+  return lastInteraction ? lastInteraction.time : null;
+};
+
+// Helper function to calculate average orders
+const calculateAverageOrders = async (restaurantId) => {
+  const orderData = await Order.aggregate([
+    {
+      $match: { restaurantId: new mongoose.Types.ObjectId(restaurantId) },
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+        },
+      },
+    },
+  ]);
+
+  const totalOrders = await Order.countDocuments({ restaurantId });
+  const totalOrderDays = orderData.length;
+
+  return totalOrderDays > 0 ? Math.floor(totalOrders / totalOrderDays) : 0;
+};
+
+// Main getLeads function
 exports.getLeads = async (req, res) => {
   try {
-    // Fetch leads and sort by the last call time
-    const leads = await Lead.aggregate([
-      {
-        $lookup: {
-          from: "calls", // The collection name for calls
-          localField: "_id", // Lead ID in the Lead collection
-          foreignField: "restaurantId", // Restaurant ID in the Call collection
-          as: "callData",
-        },
-      },
-      {
-        $addFields: {
-          lastCallTime: { $max: "$callData.time" }, // Get the latest call time
-        },
-      },
-      {
-        $sort: {
-          lastCallTime: 1, // Sort by last call time (ascending)
-        },
-      },
-    ]);
+    const { sortBy } = req.query; // Retrieve the sortBy parameter from the query string
 
-    res.status(200).json(leads);
+    // Fetch all leads
+    const leads = await Lead.find();
+
+    // Enrich leads with calculated metrics
+    const enrichedLeads = await Promise.all(
+      leads.map(async (lead) => {
+        const averageInteractions = await calculateAverageInteractions(
+          lead._id
+        );
+        const averageOrders = await calculateAverageOrders(lead._id);
+        const lastInteractionTime = await getLastInteractionTime(lead._id);
+
+        return {
+          ...lead.toObject(),
+          averageInteractions,
+          averageOrders,
+          lastInteractionTime,
+        };
+      })
+    );
+
+    // Sort enriched leads dynamically
+    enrichedLeads.sort((a, b) => {
+      if (sortBy === "averageInteractions") {
+        return b.averageInteractions - a.averageInteractions;
+      } else if (sortBy === "averageOrders") {
+        return b.averageOrders - a.averageOrders;
+      } else {
+        return (
+          new Date(b.lastInteractionTime) - new Date(a.lastInteractionTime)
+        ); // Default: Sort by lastInteractionTime
+      }
+    });
+
+    res.status(200).json(enrichedLeads);
   } catch (err) {
+    console.error("Error fetching leads:", err.message);
     res
       .status(500)
       .json({ message: "Error fetching leads", error: err.message });
@@ -172,7 +242,7 @@ exports.addContact = async (req, res) => {
     // Validate incoming contact data
     const { name, role, phone, email } = req.body;
     if (!name || !role || !phone || !email) {
-      console.error("Invalid Contact Data:", req.body); // Log invalid data
+      console.error("Invalid Contact Data:", req.body);
       return res.status(400).json({ message: "Invalid contact data" });
     }
 
@@ -188,7 +258,7 @@ exports.addContact = async (req, res) => {
 
 exports.deleteContact = async (req, res) => {
   try {
-    const lead = await Lead.findById(req.params.id); // Find lead by ID
+    const lead = await Lead.findById(req.params.id);
     if (!lead) {
       return res.status(404).json({ message: "Lead not found" });
     }
@@ -197,8 +267,8 @@ exports.deleteContact = async (req, res) => {
     lead.contacts = lead.contacts.filter(
       (contact) => contact._id.toString() !== req.params.contactId
     );
-    await lead.save(); // Save the updated lead
-    res.json(lead); // Return the updated lead
+    await lead.save();
+    res.json(lead);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -227,12 +297,12 @@ exports.getLeadStats = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Calls made today
-    const callsToday = await Call.countDocuments({
+    // Interactions made today
+    const interactionsToday = await Interaction.countDocuments({
       restaurantId: id,
       time: {
-        $gte: new Date().setHours(0, 0, 0, 0), // Start of today
-        $lte: new Date(), // Till now
+        $gte: new Date().setHours(0, 0, 0, 0),
+        $lte: new Date(),
       },
     });
 
@@ -241,48 +311,16 @@ exports.getLeadStats = async (req, res) => {
       restaurantId: id,
       status: "Completed",
       createdAt: {
-        $gte: new Date().setHours(0, 0, 0, 0), // Start of today
-        $lte: new Date(), // Till now
+        $gte: new Date().setHours(0, 0, 0, 0),
+        $lte: new Date(),
       },
     });
 
-    // Average calls per day
-    const totalCalls = await Call.countDocuments({ restaurantId: id });
-
-    const mongoose = require("mongoose");
-
-    const callDates = await Call.aggregate([
-      {
-        $match: { restaurantId: new mongoose.Types.ObjectId(id) },
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$time" },
-          },
-        },
-      },
-    ]);
-    const totalDays = callDates.length;
-    const averageCalls = totalDays ? Math.round(totalCalls / totalDays) : 0;
+    // Average interactions per day
+    const averageInteractions = await calculateAverageInteractions(id);
 
     // Average orders per day
-    const totalOrders = await Order.countDocuments({ restaurantId: id });
-
-    const orderDates = await Order.aggregate([
-      {
-        $match: { restaurantId: new mongoose.Types.ObjectId(id) },
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
-          },
-        },
-      },
-    ]);
-    const orderDays = orderDates.length;
-    const averageOrders = orderDays ? Math.round(totalOrders / orderDays) : 0;
+    const averageOrders = await calculateAverageOrders(id);
 
     // Pending orders
     const pendingOrders = await Order.countDocuments({
@@ -290,15 +328,19 @@ exports.getLeadStats = async (req, res) => {
       status: "Pending",
     });
 
+    // Last interaction time
+    const lastInteractionTime = await getLastInteractionTime(id);
+
     res.status(200).json({
-      callsToday,
+      interactionsToday,
       ordersToday,
-      averageCalls,
+      averageInteractions,
       averageOrders,
       pendingOrders,
+      lastInteractionTime,
     });
   } catch (error) {
-    console.error(error.message);
+    console.error("Error fetching lead statistics:", error.message);
 
     res.status(500).json({
       message: "Error fetching lead statistics",
