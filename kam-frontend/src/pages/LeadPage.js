@@ -71,13 +71,7 @@ const LeadPage = () => {
             restaurantId={id}
             to={lead.assignedKAM}
             from="Admin"
-            type="Call"
-          />
-          <SimulateButton
-            restaurantId={id}
-            to={lead.assignedKAM}
-            from="Admin"
-            type="Email"
+            type="Regular-Update"
           />
         </div>
       </div>

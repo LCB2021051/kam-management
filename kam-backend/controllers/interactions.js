@@ -11,7 +11,7 @@ exports.addInteraction = async (req, res) => {
       about,
       from,
       to,
-      time: new Date(), // Explicitly set the current date and time
+      time: new Date().toISOString(), // Store in ISO 8601 format
     });
 
     await interaction.save();
@@ -28,7 +28,6 @@ exports.getInteractions = async (req, res) => {
   const { restaurantId } = req.params;
 
   try {
-    // Fetch the most recent 10 interactions for the given restaurant
     const interactions = await Interaction.find({ restaurantId })
       .sort({ time: -1 })
       .limit(10);
@@ -39,7 +38,12 @@ exports.getInteractions = async (req, res) => {
       });
     }
 
-    res.status(200).json(interactions);
+    res.status(200).json(
+      interactions.map((interaction) => ({
+        ...interaction.toObject(),
+        time: new Date(interaction.time).toISOString(), // Return in ISO format
+      }))
+    );
   } catch (error) {
     res.status(500).json({
       message: "Error fetching interactions",

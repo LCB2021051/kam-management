@@ -9,6 +9,7 @@ const LeadForm = ({ onLeadAdded }) => {
     contactNumber: "",
     status: "New",
     assignedKAM: "",
+    notificationFrequency: 7, // Default notification frequency
   });
 
   const navigate = useNavigate(); // Hook to navigate programmatically
@@ -20,9 +21,9 @@ const LeadForm = ({ onLeadAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const Response = await createLead(formData);
+      const response = await createLead(formData);
       if (onLeadAdded) {
-        onLeadAdded(Response);
+        onLeadAdded(response);
       }
 
       setFormData({
@@ -31,12 +32,17 @@ const LeadForm = ({ onLeadAdded }) => {
         contactNumber: "",
         status: "New",
         assignedKAM: "",
+        notificationFrequency: 7,
       });
 
-      navigate(`/leads/${Response.lead.id}`);
+      navigate(`/leads/${response.lead.id}`);
     } catch (error) {
       console.error("Error creating lead:", error.message);
     }
+  };
+
+  const handleCancel = () => {
+    navigate(-1); // Navigate back to the previous page
   };
 
   return (
@@ -85,12 +91,33 @@ const LeadForm = ({ onLeadAdded }) => {
           className="w-full p-2 border rounded"
         />
       </div>
-      <button
-        type="submit"
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
-        Add Lead
-      </button>
+      <div className="mb-4">
+        <label className="block mb-1">Notification Frequency (Days)</label>
+        <input
+          type="number"
+          name="notificationFrequency"
+          value={formData.notificationFrequency}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+          min="1"
+          required
+        />
+      </div>
+      <div className="flex space-x-4">
+        <button
+          type="submit"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Add Lead
+        </button>
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+        >
+          Cancel
+        </button>
+      </div>
     </form>
   );
 };

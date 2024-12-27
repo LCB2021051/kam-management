@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { getInteractions, addInteraction } from "../services/api";
+import NextInteractionDue from "./NextInteractionDue";
+import AddInteractionForm from "./AddInteractionForm";
 
 const Interaction = ({ restaurantId, lead }) => {
   const [interactions, setInteractions] = useState([]);
@@ -25,142 +27,64 @@ const Interaction = ({ restaurantId, lead }) => {
   };
 
   // Handle adding a new interaction
-  const handleAddInteraction = async (e) => {
-    e.preventDefault();
-    try {
-      const { type, about, from, to } = newInteraction;
-
-      // Validate fields
-      if (!type || !about || !from || !to) {
-        setMessage("All fields are required.");
-        return;
-      }
-
-      const data = await addInteraction(restaurantId, newInteraction);
-
-      setInteractions((prev) => [data, ...prev]); // Add new interaction to the list
-      setNewInteraction({
-        type: "Call", // Reset to default
-        about: "",
-        from: "Admin", // Reset to default
-        to: lead?.assignedKAM || "", // Reset to default
-      });
-      setMessage("Interaction added successfully!");
-    } catch (error) {
-      setMessage("Failed to add interaction.");
-      console.error("Error adding interaction:", error.message);
-    }
+  const handleInteractionAdded = async (restaurantId, interactionData) => {
+    const data = await addInteraction(restaurantId, interactionData);
+    return data; // API response
   };
 
   return (
     <div className="p-4">
       {/* Toggle Button */}
-      <button
-        onClick={() => {
-          if (!showLog) handleGetInteractions(); // Fetch interactions if not already shown
-          setShowLog((prev) => !prev); // Toggle visibility
-        }}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
-        {showLog ? "Hide Interaction Log" : "Show Interaction Log"}
-      </button>
+      <div className="flex justify-between">
+        <button
+          onClick={() => {
+            if (!showLog) handleGetInteractions(); // Fetch interactions if not already shown
+            setShowLog((prev) => !prev); // Toggle visibility
+          }}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          {showLog ? "Hide Interaction Log" : "Show Interaction Log"}
+        </button>
+        <NextInteractionDue restaurantId={restaurantId} />
+      </div>
 
       {/* Display Interactions */}
       {showLog && interactions.length > 0 && (
         <div className="mt-4">
           <h3 className="text-lg font-bold mb-4">Interaction Log</h3>
-          <ul>
+          <ul className="space-y-2">
             {interactions.map((interaction) => (
-              <li key={interaction._id} className="border-b p-2">
-                <div className="flex flex-row justify-between">
-                  <div className="flex flex-row gap-5">
-                    <p className="w-36 truncate">{interaction.type}</p>
-                    <p className="w-36 truncate">{interaction.about}</p>
-                    <p className="w-36 truncate">
-                      {interaction.from}
-                      {" to "}
-                      {interaction.to}
-                    </p>
-                  </div>
-                  <p>{new Date(interaction.time).toLocaleString()}</p>
+              <li
+                key={interaction._id}
+                className="border-b pb-2 pt-2 px-4 flex flex-col sm:flex-row justify-between items-start sm:items-center"
+              >
+                <div className="flex flex-col sm:flex-row sm:gap-5 sm:items-center">
+                  <p className="w-36 truncate font-medium text-gray-800">
+                    {interaction.type}
+                  </p>
+                  <p className="w-36 truncate text-gray-600">
+                    {interaction.about}
+                  </p>
+                  <p className="w-36 truncate text-gray-600">
+                    {interaction.from} <span className="font-semibold">to</span>{" "}
+                    {interaction.to}
+                  </p>
                 </div>
+                <p className="mt-2 sm:mt-0 text-gray-500 text-sm">
+                  {new Date(interaction.time).toLocaleString()}
+                </p>
               </li>
             ))}
           </ul>
+
+          {/* Add Interaction Form */}
+          <AddInteractionForm
+            restaurantId={restaurantId}
+            lead={lead}
+            onInteractionAdded={handleInteractionAdded}
+          />
         </div>
       )}
-
-      {/* Add New Interaction */}
-      <form onSubmit={handleAddInteraction} className="mt-4">
-        <h3 className="text-lg font-bold mb-4">Add Custom Interaction</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {/* Interaction Type Dropdown */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Type</label>
-            <select
-              value={newInteraction.type}
-              onChange={(e) =>
-                setNewInteraction({ ...newInteraction, type: e.target.value })
-              }
-              className="w-full p-1 border rounded text-sm"
-              required
-            >
-              <option value="Call">Call</option>
-              <option value="Email">Email</option>
-            </select>
-          </div>
-
-          {/* About Input */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">About</label>
-            <input
-              type="text"
-              value={newInteraction.about}
-              onChange={(e) =>
-                setNewInteraction({ ...newInteraction, about: e.target.value })
-              }
-              className="w-full p-1 border rounded text-sm"
-              placeholder="Purpose (e.g., Sales)"
-              required
-            />
-          </div>
-
-          {/* From Input (Default: Admin) */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">From</label>
-            <input
-              type="text"
-              value={newInteraction.from}
-              onChange={(e) =>
-                setNewInteraction({ ...newInteraction, from: e.target.value })
-              }
-              className="w-full p-1 border rounded text-sm"
-              readOnly
-            />
-          </div>
-
-          {/* To Input (Default: Assigned KAM) */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">To</label>
-            <input
-              type="text"
-              value={newInteraction.to}
-              onChange={(e) =>
-                setNewInteraction({ ...newInteraction, to: e.target.value })
-              }
-              className="w-full p-1 border rounded text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 mt-2 text-sm"
-        >
-          Add Interaction
-        </button>
-      </form>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getDashboardStats } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import InteractionNotifications from "../components/InteractionNotifications";
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -68,6 +69,10 @@ const Dashboard = () => {
           <p className="text-2xl">{stats.inactiveLeads}</p>
         </div>
       </div>
+
+      <InteractionNotifications />
+
+      {/* Recent Leads*/}
       <div className="mt-8">
         <h3 className="text-xl font-bold mb-4">Recent Leads</h3>
         <ul>

@@ -347,3 +347,103 @@ exports.getLeadStats = async (req, res) => {
     });
   }
 };
+
+const calculateNextInteractionDueById = async (restaurantId) => {
+  try {
+    const lead = await Lead.findById(restaurantId);
+
+    if (!lead) {
+      throw new Error("Lead not found");
+    }
+
+    // Fetch the last "Regular-Update" interaction
+    const lastRegularUpdate = await Interaction.findOne({
+      restaurantId,
+      type: "Regular-Update",
+    })
+      .sort({ time: -1 })
+      .select("time");
+
+    // Get the last interaction date (rounded to the start of the day)
+    const lastInteractionDate = lastRegularUpdate
+      ? new Date(lastRegularUpdate.time.setHours(0, 0, 0, 0))
+      : null;
+
+    // Calculate the next interaction due date (start of the day)
+    const nextInteractionDue = lastInteractionDate
+      ? new Date(
+          lastInteractionDate.getTime() +
+            lead.notificationFrequency * 24 * 60 * 60 * 1000
+        )
+      : new Date(new Date().setHours(0, 0, 0, 0)); // Default to today
+
+    // Return next interaction due as a Date object
+    return { nextInteractionDue };
+  } catch (error) {
+    console.error("Error calculating next interaction due:", error.message);
+    throw new Error("Unable to calculate next interaction due.");
+  }
+};
+
+// Controller to fetch leads requiring interaction today
+exports.getLeadsForInteraction = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const leads = await Lead.find();
+
+    const leadsRequiringInteraction = await Promise.all(
+      leads.map(async (lead) => {
+        const { nextInteractionDue } = await calculateNextInteractionDueById(
+          lead._id
+        );
+
+        if (today >= nextInteractionDue) {
+          return {
+            id: lead._id,
+            name: lead.name,
+            address: lead.address,
+            contactNumber: lead.contactNumber,
+            assignedKAM: lead.assignedKAM,
+            nextInteractionDue,
+          };
+        }
+
+        return null;
+      })
+    );
+
+    const filteredLeads = leadsRequiringInteraction.filter(Boolean);
+
+    res.status(200).json({
+      message: "Leads requiring interaction",
+      data: filteredLeads,
+    });
+  } catch (error) {
+    console.error("Error fetching leads for interaction:", error.message);
+    res.status(500).json({
+      message: "Error fetching leads for interaction",
+      error: error.message,
+    });
+  }
+};
+
+// Controller to get the next interaction due for a specific lead
+exports.getNextInteractionDue = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { nextInteractionDue } = await calculateNextInteractionDueById(id);
+
+    res.status(200).json({
+      message: "Next interaction due date fetched successfully",
+      data: { nextInteractionDue }, // Return as a Date object
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching next interaction due date",
+      error: error.message,
+    });
+  }
+};

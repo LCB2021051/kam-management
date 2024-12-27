@@ -8,7 +8,7 @@ const InteractionSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["Call", "Email"], // Types of interactions
+    enum: ["Call", "Email", "Regular-Update"], // Types of interactions
     required: true,
   },
   from: {

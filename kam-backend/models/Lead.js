@@ -13,9 +13,27 @@ const LeadSchema = new mongoose.Schema({
   },
   assignedKAM: { type: String }, // Assigned KAM
   contacts: [ContactSchema], // Embedded ContactSchema
-  username: { type: String, unique: true, required: true },
+  username: { type: String, unique: true, required: true }, // Unique username
   password: { type: String, required: true }, // Hashed password
   lastLoginTime: { type: Date }, // Last login timestamp
+  notificationFrequency: {
+    type: Number, // Notification frequency in days
+    default: 7, // Default to 7 days
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now, // Auto-set creation time
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now, // Auto-set update time
+  },
+});
+
+// Middleware to update the `updatedAt` field before saving
+LeadSchema.pre("save", function (next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 module.exports = mongoose.model("Lead", LeadSchema);

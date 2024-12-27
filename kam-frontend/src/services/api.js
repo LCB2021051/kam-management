@@ -121,3 +121,20 @@ export const addInteraction = async (restaurantId, interactionData) => {
     throw new Error(errorMessage);
   }
 };
+
+export const getLeadsForInteraction = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/leads/interaction-due`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching interactions due:", error.message);
+    throw error;
+  }
+};
+
+export const getNextInteractionDue = async (restaurantId) => {
+  const response = await axios.get(
+    `${API_URL}/leads//interaction-due/${restaurantId}`
+  );
+  return response.data;
+};

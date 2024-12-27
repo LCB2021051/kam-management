@@ -11,6 +11,7 @@ const EditLeadForm = () => {
     contactNumber: "",
     status: "New",
     assignedKAM: "",
+    notificationFrequency: 7, // Default frequency in days
   });
 
   // Fetch lead data based on ID
@@ -24,6 +25,7 @@ const EditLeadForm = () => {
           contactNumber: lead.contactNumber || "",
           status: lead.status || "New",
           assignedKAM: lead.assignedKAM || "",
+          notificationFrequency: lead.notificationFrequency || 7, // Set default if not present
         });
       } catch (error) {
         console.error("Error fetching lead:", error.message);
@@ -108,6 +110,18 @@ const EditLeadForm = () => {
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
         </select>
+      </div>
+      <div className="mb-4">
+        <label className="block mb-1">Notification Frequency (Days)</label>
+        <input
+          type="number"
+          name="notificationFrequency"
+          value={formData.notificationFrequency}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+          min="1"
+          required
+        />
       </div>
       <div className="flex space-x-4">
         <button
