@@ -54,31 +54,43 @@ exports.pendingOrders = async (req, res) => {
   }
 };
 
-// Mark Order as Complete
-exports.orderComplete = async (req, res) => {
+// Mark Order as Complete/Canclled
+exports.updateOrderStatus = async (req, res) => {
   const { id } = req.params;
+  const { status } = req.body;
 
   if (!id) {
     return res
       .status(400)
-      .json({ message: "Order ID is required to mark as complete." });
+      .json({ message: "Order ID is required to update status." });
+  }
+
+  if (!status) {
+    return res
+      .status(400)
+      .json({ message: "Status is required to update the order." });
+  }
+
+  const validStatuses = ["Completed", "Cancelled", "Pending"];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({
+      message: `Invalid status. Allowed statuses are: ${validStatuses.join(
+        ", "
+      )}`,
+    });
   }
 
   try {
-    const order = await Order.findByIdAndUpdate(
-      id,
-      { status: "Completed" },
-      { new: true }
-    );
+    const order = await Order.findByIdAndUpdate(id, { status }, { new: true });
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    res.status(200).json({ message: "Order marked as complete", order });
+    res.status(200).json({ message: `Order marked as ${status}`, order });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Error completing order", error: error.message });
+      .json({ message: "Error updating order status", error: error.message });
   }
 };

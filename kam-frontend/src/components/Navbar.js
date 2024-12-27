@@ -17,7 +17,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-blue-500 p-4">
-      <div className="container mx-auto flex justify-between items-center">
+      <div className="container mx-auto flex justify-between items-center gap-5">
         {/* Left: KAM Management */}
         <Link
           to="/"
@@ -45,6 +45,13 @@ const Navbar = () => {
             Search
           </button>
         </form>
+
+        <Link
+          to={"/leads/performance"}
+          className="text-white hover:underline hidden md:block"
+        >
+          Performance
+        </Link>
 
         {/* Right: Leads (hidden on small screens) */}
         <Link

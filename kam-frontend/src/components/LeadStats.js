@@ -38,9 +38,17 @@ const LeadStats = ({ leadId }) => {
 
   return (
     <div className="mt-6 p-6 border rounded bg-white shadow-lg">
-      <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-        Lead Statistics
-      </h3>
+      <div className="flex flex-col items-center pb-3">
+        <h3 className="text-2xl font-bold text-gray-800 text-center">
+          Lead Statistics
+        </h3>
+        <p>Last Interaction</p>
+        <p>
+          {stats.lastInteractionTime
+            ? new Date(stats.lastInteractionTime).toLocaleString()
+            : "No interactions yet"}
+        </p>
+      </div>
 
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -60,22 +68,6 @@ const LeadStats = ({ leadId }) => {
               {stats.ordersToday}
             </p>
           </div>
-          <div className="p-4 bg-yellow-100 rounded-lg shadow-md text-center">
-            <h4 className="text-xl font-semibold text-yellow-700">
-              Avg Interactions/Day
-            </h4>
-            <p className="text-3xl font-bold text-yellow-800">
-              {stats.averageInteractions}
-            </p>
-          </div>
-          <div className="p-4 bg-red-100 rounded-lg shadow-md text-center">
-            <h4 className="text-xl font-semibold text-red-700">
-              Avg Orders/Day
-            </h4>
-            <p className="text-3xl font-bold text-red-800">
-              {stats.averageOrders}
-            </p>
-          </div>
           <div className="p-4 bg-purple-100 rounded-lg shadow-md text-center">
             <h4 className="text-xl font-semibold text-purple-700">
               Pending Orders
@@ -84,14 +76,26 @@ const LeadStats = ({ leadId }) => {
               {stats.pendingOrders}
             </p>
           </div>
-          <div className="p-4 bg-teal-100 rounded-lg shadow-md text-center">
-            <h4 className="text-xl font-semibold text-teal-700">
-              Last Interaction
+          <div className="p-4 bg-yellow-100 rounded-lg shadow-md text-center">
+            <h4 className="text-xl font-semibold text-yellow-700">
+              Interactions/Day
             </h4>
-            <p className="text-lg text-teal-800">
-              {stats.lastInteractionTime
-                ? new Date(stats.lastInteractionTime).toLocaleString()
-                : "No interactions yet"}
+            <p className="text-3xl font-bold text-yellow-800">
+              {stats.averageInteractions}
+            </p>
+          </div>
+          <div className="p-4 bg-red-100 rounded-lg shadow-md text-center">
+            <h4 className="text-xl font-semibold text-red-700">Orders/Day</h4>
+            <p className="text-3xl font-bold text-red-800">
+              {stats.averageCompletedOrders}
+            </p>
+          </div>
+          <div className="p-4 bg-orange-100 rounded-lg shadow-md text-center">
+            <h4 className="text-xl font-semibold text-orange-700">
+              Cancelled/Day
+            </h4>
+            <p className="text-3xl font-bold text-orange-800">
+              {stats.averageCanceledOrders}
             </p>
           </div>
         </div>

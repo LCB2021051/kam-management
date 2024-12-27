@@ -138,3 +138,13 @@ export const getNextInteractionDue = async (restaurantId) => {
   );
   return response.data;
 };
+
+export const getPerformanceMetrics = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/leads/performance-matrix`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching performance metrics:", error.message);
+    throw new Error("Failed to fetch performance metrics.");
+  }
+};

@@ -4,11 +4,11 @@ const router = express.Router();
 const {
   simulateOrder,
   pendingOrders, // Fixed typo
-  orderComplete,
+  updateOrderStatus,
 } = require("../controllers/orders");
 
 router.post("/simulate-order", simulateOrder);
 router.get("/pending", pendingOrders);
-router.patch("/:id/complete", orderComplete);
+router.put("/:id/status", updateOrderStatus);
 
 module.exports = router;

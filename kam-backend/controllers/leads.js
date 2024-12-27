@@ -2,7 +2,6 @@ const Lead = require("../models/Lead");
 const Order = require("../models/Order");
 const Interaction = require("../models/Interaction");
 const bcrypt = require("bcrypt");
-
 const mongoose = require("mongoose");
 
 // Create a new lead
@@ -74,6 +73,7 @@ exports.deleteLead = async (req, res) => {
   }
 };
 
+// dashboard Stats
 exports.getDashboardStats = async (req, res) => {
   try {
     const totalLeads = await Lead.countDocuments();
@@ -177,10 +177,19 @@ const calculateAverageOrders = async (restaurantId) => {
     },
   ]);
 
-  const totalOrders = await Order.countDocuments({ restaurantId });
   const totalOrderDays = orderData.length;
 
-  return totalOrderDays > 0 ? Math.floor(totalOrders / totalOrderDays) : 0;
+  const [completedOrders, canceledOrders] = await Promise.all([
+    Order.countDocuments({ restaurantId, status: "Completed" }),
+    Order.countDocuments({ restaurantId, status: "Cancelled" }),
+  ]);
+
+  return {
+    averageCompletedOrders:
+      totalOrderDays > 0 ? Math.floor(completedOrders / totalOrderDays) : 0,
+    averageCanceledOrders:
+      totalOrderDays > 0 ? Math.floor(canceledOrders / totalOrderDays) : 0,
+  };
 };
 
 // Main getLeads function
@@ -197,9 +206,10 @@ exports.getLeads = async (req, res) => {
         const averageInteractions = await calculateAverageInteractions(
           lead._id
         );
-        const averageOrders = await calculateAverageOrders(lead._id);
+        const { averageCompletedOrders, averageCanceledOrders } =
+          await calculateAverageOrders(lead._id);
         const lastInteractionTime = await getLastInteractionTime(lead._id);
-
+        const averageOrders = averageCompletedOrders;
         return {
           ...lead.toObject(),
           averageInteractions,
@@ -319,7 +329,8 @@ exports.getLeadStats = async (req, res) => {
     const averageInteractions = await calculateAverageInteractions(id);
 
     // Average orders per day
-    const averageOrders = await calculateAverageOrders(id);
+    const { averageCompletedOrders, averageCanceledOrders } =
+      await calculateAverageOrders(id);
 
     // Pending orders
     const pendingOrders = await Order.countDocuments({
@@ -334,7 +345,8 @@ exports.getLeadStats = async (req, res) => {
       interactionsToday,
       ordersToday,
       averageInteractions,
-      averageOrders,
+      averageCompletedOrders,
+      averageCanceledOrders,
       pendingOrders,
       lastInteractionTime,
     });
@@ -443,6 +455,66 @@ exports.getNextInteractionDue = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error fetching next interaction due date",
+      error: error.message,
+    });
+  }
+};
+
+// Helper function to calculate average metrics
+exports.getPerformanceMetrics = async (req, res) => {
+  try {
+    // Fetch all leads
+    const leads = await Lead.find();
+
+    // Calculate performance metrics for each lead
+    const performanceMetrics = await Promise.all(
+      leads.map(async (lead) => {
+        // Calculate average interactions and orders
+        const [averageOrders, averageInteractions] = await Promise.all([
+          calculateAverageOrders(lead._id),
+          calculateAverageInteractions(lead._id),
+        ]);
+
+        // Calculate Weighted Score
+        const weightedScore =
+          averageOrders.averageCompletedOrders * 2 -
+          averageOrders.averageCanceledOrders * 1 +
+          averageInteractions * 0.5;
+
+        return {
+          id: lead._id,
+          name: lead.name,
+          averageCompletedOrders: averageOrders.averageCompletedOrders,
+          averageCanceledOrders: averageOrders.averageCanceledOrders,
+          averageInteractions,
+          weightedScore,
+        };
+      })
+    );
+
+    // Calculate maximum score for Performance Index
+    const maxScore = Math.max(
+      ...performanceMetrics.map((m) => m.weightedScore)
+    );
+
+    // Add Performance Index to each lead's metrics
+    const enrichedMetrics = performanceMetrics.map((metric) => ({
+      ...metric,
+      performanceIndex:
+        maxScore > 0 ? ((metric.weightedScore / maxScore) * 100).toFixed(2) : 0,
+    }));
+
+    // Sort metrics by Weighted Score in descending order
+    enrichedMetrics.sort((a, b) => b.weightedScore - a.weightedScore);
+
+    res.status(200).json({
+      message: "Performance metrics fetched successfully",
+      data: enrichedMetrics,
+    });
+  } catch (error) {
+    console.error("Error fetching performance metrics:", error.message);
+    res.status(500).json({
+      message: "Error fetching performance metrics",
       error: error.message,
     });
   }

@@ -5,7 +5,7 @@ import {
   simulateCall,
   simulateOrder,
   getPendingOrders,
-  completeOrder,
+  updateOrderStatus,
 } from "../services/api";
 
 const Profile = () => {
@@ -57,14 +57,18 @@ const Profile = () => {
     }
   };
 
-  const handleCompleteOrder = async (orderId) => {
+  const handleUpdateStatus = async (orderId, status) => {
     try {
-      const res = await completeOrder(orderId);
-      setMessage(`Order ${orderId} marked as complete.`);
+      if (!status) {
+        alert("Please select a status.");
+        return;
+      }
+
+      const result = await updateOrderStatus(orderId, status);
+      setMessage(result.message);
       fetchPendingOrders();
     } catch (error) {
-      setMessage("Error completing order.");
-      console.error("Error during order completion:", error.message);
+      setMessage("Failed to update order status.");
     }
   };
 
@@ -123,13 +127,19 @@ const Profile = () => {
               {pendingOrders.map((order) => (
                 <li
                   key={order._id}
-                  className="p-4 border rounded mb-2 bg-gray-100 flex justify-between items-center"
+                  className="p-4 border rounded mb-2 bg-gray-100 flex justify-between items-center gap-3"
                 >
                   <p>
                     <span className="font-bold">Order ID:</span> {order._id}
                   </p>
                   <button
-                    onClick={() => handleCompleteOrder(order._id)}
+                    onClick={() => handleUpdateStatus(order._id, "Cancelled")}
+                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                  >
+                    Cancle
+                  </button>
+                  <button
+                    onClick={() => handleUpdateStatus(order._id, "Completed")}
                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                   >
                     Done

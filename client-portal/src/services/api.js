@@ -50,6 +50,21 @@ export const completeOrder = async (orderId) => {
   return response.data;
 };
 
+export const updateOrderStatus = async (orderId, status) => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/orders/${orderId}/status`,
+      {
+        status,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating order status:", error.message);
+    throw error;
+  }
+};
+
 // addInteractions by Client
 export const simulateCall = async (restaurantId, interactionData) => {
   if (!restaurantId || !interactionData) {

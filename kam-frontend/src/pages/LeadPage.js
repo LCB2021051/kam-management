@@ -15,7 +15,6 @@ const LeadPage = () => {
   const { id } = useParams();
   const [lead, setLead] = useState(null);
 
-  const [callMessage, setCallMessage] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {

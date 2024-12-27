@@ -7,6 +7,7 @@ import SearchPage from "./pages/SearchPage.js";
 import LeadPage from "./pages/LeadPage.js";
 import LeadForm from "./components/LeadForm.js";
 import EditLeadForm from "./components/EditLeadForm.js";
+import Performance from "./pages/Performance.js";
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <Route path="/leads/:id" element={<LeadPage />} />
         <Route path="/leads/edit/:id" element={<EditLeadForm />} />
         <Route path="/leads/addNew" element={<LeadForm />} />
+        <Route path="/leads/Performance" element={<Performance />} />
       </Routes>
     </Router>
   );

@@ -12,6 +12,7 @@ const {
   getLeadStats,
   getLeadsForInteraction,
   getNextInteractionDue,
+  getPerformanceMetrics,
 } = require("../controllers/leads");
 
 // Routes for leads
@@ -19,8 +20,9 @@ router.get("/dashboard", getDashboardStats);
 router.get("/", getLeads);
 router.post("/", createLead);
 router.get("/interaction-due", getLeadsForInteraction);
-router.get("/interaction-due/:id", getNextInteractionDue);
+router.get("/performance-matrix", getPerformanceMetrics);
 
+router.get("/interaction-due/:id", getNextInteractionDue);
 router.get("/:id", getLeadById);
 router.put("/:id", updateLead);
 router.delete("/:id", deleteLead);
