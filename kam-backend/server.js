@@ -12,17 +12,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// For Leads
+// For Leads (restorant)
 app.use("/api/leads", require("./routes/leads"));
-
-// for client
-app.use("/api/auth", require("./routes/auth"));
 
 // for orders
 app.use("/api/orders", require("./routes/orders"));
 
 // for interactions
 app.use("/api/interactions", require("./routes/interactions"));
+
+// for user
+app.use("/api/users", require("./routes/user"));
 
 // Start the server
 const PORT = process.env.PORT || 5000;

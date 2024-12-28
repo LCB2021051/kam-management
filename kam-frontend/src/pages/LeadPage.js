@@ -14,29 +14,55 @@ import SimulateButton from "../components/SimulateButton";
 const LeadPage = () => {
   const { id } = useParams();
   const [lead, setLead] = useState(null);
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   useEffect(() => {
-    const fetchLead = async () => {
-      const data = await getLeadById(id);
-      setLead(data);
-    };
     fetchLead();
   }, [id]);
 
+  const fetchLead = async () => {
+    try {
+      const data = await getLeadById(id);
+      setLead(data);
+      setError("");
+    } catch (err) {
+      console.error("Error fetching lead:", err.message);
+      setError("Failed to load lead details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddContact = async (contact) => {
-    const updatedLead = await addContactToLead(id, contact);
-    setLead(updatedLead);
+    try {
+      const updatedLead = await addContactToLead(id, contact);
+      setLead(updatedLead);
+      fetchLead();
+    } catch (err) {
+      console.error("Error adding contact:", err.message);
+    }
   };
 
   const handleDeleteContact = async (contactId) => {
-    const updatedLead = await deleteContactFromLead(id, contactId);
-    setLead(updatedLead);
+    try {
+      const updatedLead = await deleteContactFromLead(id, contactId);
+      setLead(updatedLead);
+      fetchLead();
+    } catch (err) {
+      console.error("Error deleting contact:", err.message);
+    }
   };
 
-  if (!lead) {
+  if (loading) {
     return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
   }
 
   return (
@@ -49,14 +75,13 @@ const LeadPage = () => {
             <span className="font-bold">Address:</span> {lead.address}
           </p>
           <p>
-            <span className="font-bold">Contact Number:</span>{" "}
-            {lead.contactNumber}
-          </p>
-          <p>
             <span className="font-bold">Status:</span> {lead.status}
           </p>
           <p>
-            <span className="font-bold">Assigned KAM:</span> {lead.assignedKAM}
+            <span className="font-bold">Last Login:</span>{" "}
+            {lead.lastLoginTime
+              ? new Date(lead.lastLoginTime).toLocaleString("en-GB")
+              : "No login yet"}
           </p>
         </div>
         <div className="flex flex-col gap-2 p-3">
@@ -68,8 +93,8 @@ const LeadPage = () => {
           </button>
           <SimulateButton
             restaurantId={id}
-            to={lead.assignedKAM}
-            from="Admin"
+            to={lead.leadUser}
+            from={user.id}
             type="Regular-Update"
           />
         </div>
@@ -85,14 +110,18 @@ const LeadPage = () => {
       <div className="mt-8">
         <h2 className="text-xl font-bold mb-4 text-green-600">Contacts</h2>
         <ul>
-          {lead.contacts.map((contact) => (
-            <Contact
-              key={contact._id}
-              contact={contact}
-              restaurantId={id}
-              handleDeleteContact={handleDeleteContact}
-            />
-          ))}
+          {Array.isArray(lead.contacts) && lead.contacts.length > 0 ? (
+            lead.contacts.map((contact) => (
+              <Contact
+                key={contact._id}
+                contact={contact}
+                restaurantId={id}
+                handleDeleteContact={handleDeleteContact}
+              />
+            ))
+          ) : (
+            <p className="text-gray-500">No contacts available.</p>
+          )}
         </ul>
 
         {/* Add New Contact Form */}

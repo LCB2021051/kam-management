@@ -2,24 +2,43 @@ import axios from "axios";
 
 const API_BASE_URL = "http://localhost:5000/api";
 
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+// Interceptor to attach token to every request
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Login API
-export const login = async ({ username, password }) => {
-  if (!username || !password)
-    throw new Error("Username and password are required");
-
-  const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-    username,
-    password,
-  });
-
-  return response.data;
+export const login = async ({ email, password }) => {
+  try {
+    const response = await axiosInstance.post("/users/login", {
+      email,
+      password,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error logging in:", error.message);
+    throw new Error(
+      error.response?.data?.message || "Unable to login. Please try again."
+    );
+  }
 };
 
 // Logout API
-export const logout = async (username) => {
-  if (!username) throw new Error("Username is required for logout");
-  const response = await axios.post(`${API_BASE_URL}/auth/logout`, {
-    username,
+export const logout = async (userId) => {
+  if (!userId) throw new Error("Username is required for logout");
+  const response = await axios.post(`${API_BASE_URL}/users/logout`, {
+    userId,
   });
   return response.data;
 };
@@ -41,15 +60,6 @@ export const getPendingOrders = async (restaurantId) => {
   return response.data;
 };
 
-// complete given order
-export const completeOrder = async (orderId) => {
-  if (!orderId) throw new Error("Order ID is required to complete the order");
-  const response = await axios.patch(
-    `${API_BASE_URL}/orders/${orderId}/complete`
-  );
-  return response.data;
-};
-
 export const updateOrderStatus = async (orderId, status) => {
   try {
     const response = await axios.put(
@@ -66,22 +76,33 @@ export const updateOrderStatus = async (orderId, status) => {
 };
 
 // addInteractions by Client
-export const simulateCall = async (restaurantId, interactionData) => {
-  if (!restaurantId || !interactionData) {
-    throw new Error("Restaurant ID and interaction data are required.");
+export const addInteraction = async (interactionData) => {
+  const { restaurantId, type, from, to, about } = interactionData;
+
+  if (!restaurantId || !type || !from || !to || !about) {
+    throw new Error(
+      "All fields (restaurantId, type, from, to, about) are required."
+    );
   }
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/interactions`, {
-      restaurantId,
-      ...interactionData,
-    });
+    const response = await axiosInstance.post("/interactions", interactionData);
     return response.data;
   } catch (error) {
     console.error("Error adding interaction:", error.message);
+    throw new Error(
+      error.response?.data?.message || "Failed to add interaction."
+    );
+  }
+};
 
-    const errorMessage =
-      error.response?.data?.message || "Failed to add interaction.";
-    throw new Error(errorMessage);
+// get Admin UserId
+export const getAdminUserId = async () => {
+  try {
+    const response = await axiosInstance.get("/users/admin-id");
+    return response.data.adminUserId;
+  } catch (error) {
+    console.error("Error fetching admin user ID:", error.message);
+    throw new Error("Failed to fetch admin user ID");
   }
 };

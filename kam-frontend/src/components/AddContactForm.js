@@ -4,7 +4,7 @@ const AddContactForm = ({ onAddContact }) => {
   const [newContact, setNewContact] = useState({
     name: "",
     role: "",
-    phone: "",
+    number: "",
     email: "",
   });
   const [isVisible, setIsVisible] = useState(false); // State to toggle visibility
@@ -12,7 +12,7 @@ const AddContactForm = ({ onAddContact }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onAddContact(newContact);
-    setNewContact({ name: "", role: "", phone: "", email: "" }); // Reset form
+    setNewContact({ name: "", role: "", number: "", email: "" }); // Reset form
   };
 
   const toggleFormVisibility = () => {
@@ -57,10 +57,10 @@ const AddContactForm = ({ onAddContact }) => {
               />
               <input
                 type="text"
-                placeholder="Phone"
-                value={newContact.phone}
+                placeholder="number"
+                value={newContact.number}
                 onChange={(e) =>
-                  setNewContact({ ...newContact, phone: e.target.value })
+                  setNewContact({ ...newContact, number: e.target.value })
                 }
                 className="p-2 border rounded"
                 required

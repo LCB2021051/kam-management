@@ -2,73 +2,186 @@ const Lead = require("../models/Lead");
 const Order = require("../models/Order");
 const Interaction = require("../models/Interaction");
 const bcrypt = require("bcrypt");
+const User = require("../models/User");
 const mongoose = require("mongoose");
 
 // Create a new lead
 exports.createLead = async (req, res) => {
   try {
-    // Extract data from the request
-    const { name, address, contactNumber, assignedKAM, contacts } = req.body;
-
-    // Generate credentials
-    const username = name.toLowerCase().replace(/\s+/g, "_"); // Username from name
-    const password = Math.random().toString(36).slice(-8); // Random 8-character password
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create the lead with the generated credentials
-    const lead = new Lead({
-      name,
+    const {
+      restaurantName,
       address,
-      contactNumber,
-      status: "New",
-      assignedKAM,
-      contacts,
-      username,
-      password: hashedPassword,
+      leadName,
+      email,
+      number,
+      notificationFrequency = 7, // Default to 7 days if not provided
+    } = req.body;
+
+    // Validate required fields
+    if (!restaurantName || !leadName || !email || !number) {
+      return res.status(400).json({
+        message:
+          "Restaurant name, lead name, email, and phone number are required.",
+      });
+    }
+
+    // Check if email or phone number already exists
+    const existingUser = await User.findOne({ $or: [{ email }, { number }] });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "Email or phone number is already in use." });
+    }
+
+    // Generate credentials for the lead user
+    const password = Math.random().toString(36).slice(-8); // Generate a random password
+
+    // Create the lead user
+    const leadUser = new User({
+      name: leadName,
+      email,
+      number,
+      role: "lead",
+      password,
     });
 
-    await lead.save();
+    // Save lead user
+    await leadUser.save();
 
-    // Credentials
-    console.log("Credentials: ", username, " ", password);
+    // Log credentials
+    console.log("Credentials:", email, password);
 
-    // Return the lead details and plain-text password
+    // Create the restaurant
+    const restaurant = new Lead({
+      name: restaurantName,
+      address,
+      leadUser: leadUser._id, // Associate the lead user with the restaurant
+      status: "New",
+      contacts: [],
+      notificationFrequency, // Include notification frequency
+    });
+
+    // Save restaurant
+    await restaurant.save();
+
+    // Update the user's `restaurantId` field
+    leadUser.restaurantId = restaurant._id;
+    await leadUser.save();
+
+    // Respond with success and credentials
     res.status(201).json({
       message: "Lead created successfully",
       lead: {
-        id: lead._id,
-        name: lead.name,
-        assignedKAM: lead.assignedKAM,
-        status: lead.status,
+        id: restaurant._id,
+        name: restaurant.name,
+        address: restaurant.address,
+        leadName,
+        email: leadUser.email,
+        number: leadUser.number,
+        status: restaurant.status,
+        notificationFrequency: restaurant.notificationFrequency,
+      },
+      credentials: {
+        email: leadUser.email,
+        password,
       },
     });
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+  } catch (error) {
+    console.error("Error creating lead:", error.message);
+    res
+      .status(500)
+      .json({ message: "Error creating lead", error: error.message });
   }
 };
 
 // Update a lead
 exports.updateLead = async (req, res) => {
   try {
-    const lead = await Lead.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+    const {
+      restaurantName,
+      address,
+      leadName,
+      email,
+      number,
+      notificationFrequency,
+    } = req.body;
+
+    // Validate input data
+    if (!restaurantName || !leadName || !email || !number) {
+      return res.status(400).json({
+        message:
+          "Restaurant name, lead name, email, and phone number are required.",
+      });
+    }
+
+    // Find the existing lead
+    const lead = await Lead.findById(req.params.id);
+    if (!lead) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
+
+    // Find the associated lead user by ID
+    const leadUser = await User.findById(lead.leadUser);
+    if (!leadUser) {
+      return res.status(404).json({ message: "Lead user not found" });
+    }
+
+    // Update the lead user details
+    leadUser.name = leadName;
+    leadUser.email = email;
+    leadUser.number = number;
+    await leadUser.save();
+
+    // Update lead details
+    lead.name = restaurantName;
+    lead.address = address;
+    lead.notificationFrequency = notificationFrequency;
+    await lead.save();
+
+    res.json({
+      message: "Lead and lead user updated successfully",
+      lead: {
+        id: lead._id,
+        name: lead.name,
+        address: lead.address,
+        leadName: leadUser.name,
+        email: leadUser.email,
+        number: leadUser.number,
+        status: lead.status,
+        notificationFrequency: lead.notificationFrequency,
+      },
     });
-    if (!lead) return res.status(404).json({ message: "Lead not found" });
-    res.json(lead);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+  } catch (error) {
+    console.error("Error updating lead:", error.message);
+    res
+      .status(500)
+      .json({ message: "Error updating lead", error: error.message });
   }
 };
 
 // Delete a lead
 exports.deleteLead = async (req, res) => {
   try {
-    const lead = await Lead.findByIdAndDelete(req.params.id);
-    if (!lead) return res.status(404).json({ message: "Lead not found" });
-    res.json({ message: "Lead deleted successfully" });
+    // Find the lead by ID
+    const lead = await Lead.findById(req.params.id);
+
+    if (!lead) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
+
+    // Delete the associated leadUser
+    if (lead.leadUser) {
+      await User.findByIdAndDelete(lead.leadUser);
+    }
+
+    // Delete the lead
+    await Lead.findByIdAndDelete(req.params.id);
+
+    res.json({
+      message: "Lead and associated lead user deleted successfully",
+    });
   } catch (err) {
+    console.error("Error deleting lead:", err.message);
     res.status(500).json({ message: err.message });
   }
 };
@@ -249,19 +362,68 @@ exports.addContact = async (req, res) => {
     }
 
     // Validate incoming contact data
-    const { name, role, phone, email } = req.body;
-    if (!name || !role || !phone || !email) {
+    const { name, role, number, email } = req.body;
+    if (!name || !role || !number || !email) {
       console.error("Invalid Contact Data:", req.body);
       return res.status(400).json({ message: "Invalid contact data" });
     }
 
-    // Add the validated contact
-    lead.contacts.push({ name, role, phone, email });
+    // Check if the contact already exists by email or phone
+    const existingContact = await User.findOne({
+      $or: [{ email }, { number }],
+    });
+
+    if (existingContact) {
+      return res.status(400).json({
+        message: "Contact with this email or phone number already exists.",
+      });
+    }
+
+    // Generate a random password if the role is `manager`
+    let password;
+    let hashedPassword;
+
+    if (role === "manager") {
+      password = Math.random().toString(36).slice(-8); // Generate random 8-character password
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    // Create a new contact as a user
+    const newContact = new User({
+      name,
+      role,
+      email,
+      number,
+      restaurantId: lead._id, // Associate contact with the lead
+      ...(role === "manager" && { password: hashedPassword }), // Add password if role is `manager`
+    });
+
+    await newContact.save();
+
+    // Add the contact to the lead's contacts array
+    lead.contacts.push(newContact._id);
     await lead.save();
-    res.status(201).json(lead);
+
+    const response = {
+      message: "Contact added successfully",
+      contact: newContact,
+    };
+
+    // Include credentials if the contact is a manager
+    if (role === "manager") {
+      console.log("Credentials :", newContact.email, password);
+      response.credentials = {
+        email: newContact.email,
+        password,
+      };
+    }
+
+    res.status(201).json(response);
   } catch (err) {
     console.error("Error adding contact:", err.message);
-    res.status(400).json({ message: err.message });
+    res
+      .status(500)
+      .json({ message: "Error adding contact", error: err.message });
   }
 };
 
@@ -287,15 +449,33 @@ exports.getLeadById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Find the lead by ID in the database
-    const lead = await Lead.findById(id);
+    // Find the lead by ID
+    const lead = await Lead.findById(id).populate(
+      "leadUser",
+      "name email number"
+    );
 
     if (!lead) {
       return res.status(404).json({ error: "Lead not found" });
     }
 
-    // Return the lead data
-    res.json(lead);
+    // Fetch contacts from the User model based on the contacts array in Lead
+    let contacts = [];
+    if (lead.contacts && lead.contacts.length > 0) {
+      contacts = await User.find(
+        { _id: { $in: lead.contacts } },
+        "name email number role"
+      );
+    }
+
+    // Structure the response to include leadUser and contacts
+    const response = {
+      ...lead.toObject(),
+      leadUser: lead.leadUser,
+      contacts,
+    };
+
+    res.json(response);
   } catch (error) {
     console.error("Error fetching lead by ID:", error.message);
     res.status(500).json({ error: "Server error while fetching lead" });

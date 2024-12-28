@@ -1,25 +1,31 @@
 const mongoose = require("mongoose");
-const ContactSchema = require("./Contact"); // Import the ContactSchema
 
 // Lead Schema
 const LeadSchema = new mongoose.Schema({
   name: { type: String, required: true }, // Restaurant name
   address: { type: String, required: true }, // Address
-  contactNumber: { type: String, required: true }, // Primary contact number
+  leadUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", // Reference to the User model for the lead (restaurant owner)
+    required: true,
+  },
   status: {
     type: String,
     enum: ["New", "Active", "Inactive"], // Allowed values
     default: "New",
   },
-  assignedKAM: { type: String }, // Assigned KAM
-  contacts: [ContactSchema], // Embedded ContactSchema
-  username: { type: String, unique: true, required: true }, // Unique username
-  password: { type: String, required: true }, // Hashed password
-  lastLoginTime: { type: Date }, // Last login timestamp
+  contacts: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // Reference to User model for multiple contacts
+    },
+  ],
   notificationFrequency: {
-    type: Number, // Notification frequency in days
+    type: Number, // Frequency in days for notifications
     default: 7, // Default to 7 days
+    required: true,
   },
+  lastLoginTime: { type: Date }, // Last login timestamp
   createdAt: {
     type: Date,
     default: Date.now, // Auto-set creation time

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
@@ -13,6 +13,10 @@ const Navbar = () => {
       setSearchTerm(""); // Clear search bar after search
       setIsMenuOpen(false); // Close the menu
     }
+  };
+
+  const handleLogout = () => {
+    onLogout();
   };
 
   return (
@@ -53,13 +57,23 @@ const Navbar = () => {
           Performance
         </Link>
 
-        {/* Right: Leads (hidden on small screens) */}
-        <Link
-          to="/leads"
-          className="text-white hover:underline hidden md:block"
-        >
-          Leads
-        </Link>
+        {/* Right: Leads and Logout */}
+        <div className="flex gap-4 items-center">
+          <Link
+            to="/leads"
+            className="text-white hover:underline hidden md:block"
+          >
+            Leads
+          </Link>
+          {user && (
+            <button
+              onClick={handleLogout}
+              className="text-white hover:underline hidden md:block"
+            >
+              Logout
+            </button>
+          )}
+        </div>
 
         {/* Hamburger Menu for Small Screens */}
         <button
@@ -90,23 +104,31 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="mt-4 bg-blue-500 text-white p-4 space-y-4 md:hidden">
-          {/* KAM Management Link */}
           <Link
             to="/"
-            onClick={() => setIsMenuOpen(false)} // Close menu on navigation
+            onClick={() => setIsMenuOpen(false)}
             className="block hover:underline"
           >
             KAM Management
           </Link>
-
-          {/* Leads Link */}
           <Link
             to="/leads"
-            onClick={() => setIsMenuOpen(false)} // Close menu on navigation
+            onClick={() => setIsMenuOpen(false)}
             className="block hover:underline"
           >
             Leads
           </Link>
+          {user && (
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                handleLogout();
+              }}
+              className="block hover:underline"
+            >
+              Logout
+            </button>
+          )}
         </div>
       )}
     </nav>

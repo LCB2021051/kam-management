@@ -1,35 +1,36 @@
 import React from "react";
 import { addInteraction } from "../services/api";
 
-const handleSimulate = async (restaurantId, to, from, type) => {
-  try {
-    const about = prompt(
-      `Enter ${type} purpose (e.g., Discussing monthly sales):`
-    );
-    if (!to || !from || !about) {
-      alert("All fields (To, From, About) are required.");
-      return;
-    }
-    const newInteraction = {
-      type,
-      about,
-      from,
-      to,
-    };
-
-    const res = await addInteraction(restaurantId, newInteraction);
-
-    alert(`${type} interaction added successfully!`);
-  } catch (error) {
-    console.error("Error adding call interaction:", error.message);
-    alert(`Failed to add ${type} interaction.`);
-  }
-};
-
 const SimulateButton = ({ restaurantId, to, from, type }) => {
+  const handleSimulate = async () => {
+    try {
+      const about = prompt(
+        `Enter ${type} purpose (e.g., Discussing monthly sales):`
+      );
+
+      if (!about) {
+        alert("Purpose of interaction (about) is required.");
+        return;
+      }
+
+      if (!restaurantId || !to || !from) {
+        alert("Restaurant ID, To, and From fields are required.");
+        return;
+      }
+
+      const interactionData = { restaurantId, type, from, to, about };
+      await addInteraction(interactionData);
+
+      alert(`${type} interaction added successfully!`);
+    } catch (error) {
+      console.error(`Error adding ${type} interaction:`, error.message);
+      alert(`Failed to add ${type} interaction.`);
+    }
+  };
+
   return (
     <button
-      onClick={() => handleSimulate(restaurantId, to, from, type)}
+      onClick={handleSimulate}
       className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
     >
       Simulate {type}

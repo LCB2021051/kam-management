@@ -2,29 +2,22 @@ const express = require("express");
 const {
   addInteraction,
   getInteractions,
-} = require("../controllers/interactions.js");
+} = require("../controllers/interactions");
 const router = express.Router();
+const { authMiddleware } = require("../middleware/auth");
+const { roleMiddleware } = require("../middleware/role");
 
-// Route to add a new interaction
-router.post("/", async (req, res) => {
-  try {
-    await addInteraction(req, res);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error adding interaction", error: error.message });
-  }
-});
-
-// Route to get interactions by restaurant ID
-router.get("/:restaurantId", async (req, res) => {
-  try {
-    await getInteractions(req, res);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching interactions", error: error.message });
-  }
-});
+router.post(
+  "/",
+  authMiddleware,
+  roleMiddleware("admin", "lead"),
+  addInteraction
+);
+router.get(
+  "/:restaurantId",
+  authMiddleware,
+  roleMiddleware("admin", "lead"),
+  getInteractions
+);
 
 module.exports = router;

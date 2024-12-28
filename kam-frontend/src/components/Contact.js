@@ -2,6 +2,8 @@ import React from "react";
 import SimulateButton from "./SimulateButton";
 
 const Contact = ({ contact, restaurantId, handleDeleteContact }) => {
+  // Get the logged-in user from localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
   return (
     <li className="p-4 border-b flex justify-between items-center">
       <div>
@@ -12,7 +14,7 @@ const Contact = ({ contact, restaurantId, handleDeleteContact }) => {
           <span className="font-bold">Role:</span> {contact.role}
         </p>
         <p>
-          <span className="font-bold">Phone:</span> {contact.phone}
+          <span className="font-bold">Phone:</span> {contact.number}
         </p>
         <p>
           <span className="font-bold">Email:</span> {contact.email}
@@ -21,14 +23,14 @@ const Contact = ({ contact, restaurantId, handleDeleteContact }) => {
       <div className="flex space-x-2 mt-2">
         <SimulateButton
           restaurantId={restaurantId}
-          to={contact.name}
-          from="Admin"
+          to={contact._id} // Interaction to the contact ID
+          from={user?.id} // Interaction from the logged-in user's ID
           type="Call"
         />
         <SimulateButton
           restaurantId={restaurantId}
-          to={contact.name}
-          from="Admin"
+          to={contact._id} // Interaction to the contact's email
+          from={user?.id} // Interaction from the logged-in user's email
           type="Email"
         />
         <button

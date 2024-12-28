@@ -12,11 +12,13 @@ const InteractionSchema = new mongoose.Schema({
     required: true,
   },
   from: {
-    type: String, // Who initiated the interaction
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", // Reference to the User model for initiator
     required: true,
   },
   to: {
-    type: String, // Who received the interaction
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", // Reference to the User model for receiver
     required: true,
   },
   about: {

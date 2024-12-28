@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getInteractions, addInteraction } from "../services/api";
 import NextInteractionDue from "./NextInteractionDue";
 import AddInteractionForm from "./AddInteractionForm";
@@ -6,19 +6,19 @@ import AddInteractionForm from "./AddInteractionForm";
 const Interaction = ({ restaurantId, lead }) => {
   const [interactions, setInteractions] = useState([]);
   const [showLog, setShowLog] = useState(false); // Toggle state for interaction log
-  const [newInteraction, setNewInteraction] = useState({
-    type: "Call", // Default value
-    about: "",
-    from: "Admin", // Default value
-    to: lead?.assignedKAM || "", // Default value
-  });
   const [message, setMessage] = useState("");
 
-  // Handle fetching interactions
-  const handleGetInteractions = async () => {
+  // Fetch interactions when `showLog` is toggled to true
+  useEffect(() => {
+    if (showLog) {
+      fetchInteractions();
+    }
+  }, [showLog, lead]);
+
+  const fetchInteractions = async () => {
     try {
-      const data = await getInteractions(restaurantId);
-      setInteractions(data);
+      const { interactions } = await getInteractions(restaurantId);
+      setInteractions(interactions);
       setMessage("Interactions fetched successfully!");
     } catch (error) {
       setMessage("Failed to fetch interactions.");
@@ -26,10 +26,15 @@ const Interaction = ({ restaurantId, lead }) => {
     }
   };
 
-  // Handle adding a new interaction
-  const handleInteractionAdded = async (restaurantId, interactionData) => {
-    const data = await addInteraction(restaurantId, interactionData);
-    return data; // API response
+  const handleInteractionAdded = async (interactionData) => {
+    try {
+      const { interaction } = await addInteraction(interactionData);
+      setInteractions((prevInteractions) => [interaction, ...prevInteractions]);
+      setMessage("Interaction added successfully!");
+    } catch (error) {
+      setMessage("Failed to add interaction.");
+      console.error("Error adding interaction:", error.message);
+    }
   };
 
   return (
@@ -37,10 +42,7 @@ const Interaction = ({ restaurantId, lead }) => {
       {/* Toggle Button */}
       <div className="flex justify-between">
         <button
-          onClick={() => {
-            if (!showLog) handleGetInteractions(); // Fetch interactions if not already shown
-            setShowLog((prev) => !prev); // Toggle visibility
-          }}
+          onClick={() => setShowLog((prev) => !prev)} // Toggle visibility
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           {showLog ? "Hide Interaction Log" : "Show Interaction Log"}
@@ -49,33 +51,38 @@ const Interaction = ({ restaurantId, lead }) => {
       </div>
 
       {/* Display Interactions */}
-      {showLog && interactions.length > 0 && (
+      {showLog && (
         <div className="mt-4">
           <h3 className="text-lg font-bold mb-4">Interaction Log</h3>
-          <ul className="space-y-2">
-            {interactions.map((interaction) => (
-              <li
-                key={interaction._id}
-                className="border-b pb-2 pt-2 px-4 flex flex-col sm:flex-row justify-between items-start sm:items-center"
-              >
-                <div className="flex flex-col sm:flex-row sm:gap-5 sm:items-center">
-                  <p className="w-36 truncate font-medium text-gray-800">
-                    {interaction.type}
+          {interactions.length > 0 ? (
+            <ul className="space-y-2">
+              {interactions.map((interaction) => (
+                <li
+                  key={interaction.id}
+                  className="border-b pb-2 pt-2 px-4 flex flex-col sm:flex-row justify-between items-start sm:items-center"
+                >
+                  <div className="flex flex-col sm:flex-row sm:gap-5 sm:items-center">
+                    <p className="w-36 truncate font-medium text-gray-800">
+                      {interaction.type}
+                    </p>
+                    <p className="w-36 truncate text-gray-600">
+                      {interaction.about}
+                    </p>
+                    <p className="w-36 truncate text-gray-600">
+                      {interaction.from?.name}{" "}
+                      <span className="font-semibold">to</span>{" "}
+                      {interaction.to?.name}
+                    </p>
+                  </div>
+                  <p className="mt-2 sm:mt-0 text-gray-500 text-sm">
+                    {new Date(interaction.time).toLocaleString()}
                   </p>
-                  <p className="w-36 truncate text-gray-600">
-                    {interaction.about}
-                  </p>
-                  <p className="w-36 truncate text-gray-600">
-                    {interaction.from} <span className="font-semibold">to</span>{" "}
-                    {interaction.to}
-                  </p>
-                </div>
-                <p className="mt-2 sm:mt-0 text-gray-500 text-sm">
-                  {new Date(interaction.time).toLocaleString()}
-                </p>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No interactions found.</p>
+          )}
 
           {/* Add Interaction Form */}
           <AddInteractionForm

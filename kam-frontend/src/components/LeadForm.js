@@ -4,12 +4,12 @@ import { useNavigate } from "react-router-dom";
 
 const LeadForm = ({ onLeadAdded }) => {
   const [formData, setFormData] = useState({
-    name: "",
+    restaurantName: "",
     address: "",
-    contactNumber: "",
-    status: "New",
-    assignedKAM: "",
-    notificationFrequency: 7, // Default notification frequency
+    leadName: "",
+    email: "",
+    number: "",
+    notificationFrequency: 7, // Default to 7 days
   });
 
   const navigate = useNavigate(); // Hook to navigate programmatically
@@ -27,11 +27,11 @@ const LeadForm = ({ onLeadAdded }) => {
       }
 
       setFormData({
-        name: "",
+        restaurantName: "",
         address: "",
-        contactNumber: "",
-        status: "New",
-        assignedKAM: "",
+        leadName: "",
+        email: "",
+        number: "",
         notificationFrequency: 7,
       });
 
@@ -46,76 +46,101 @@ const LeadForm = ({ onLeadAdded }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 bg-gray-100 rounded">
-      <h3 className="text-lg font-bold mb-4">Add New Lead</h3>
-      <div className="mb-4">
-        <label className="block mb-1">Name</label>
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
+    <form onSubmit={handleSubmit} className="m-10">
+      <h3 className="text-lg font-bold mb-6 text-center">Add New Lead</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {/* Left Column: Restaurant Information */}
+        <div>
+          <h4 className="text-md font-semibold mb-4">Restaurant Information</h4>
+          <div className="mb-4">
+            <label className="block mb-1">Restaurant Name</label>
+            <input
+              type="text"
+              name="restaurantName"
+              value={formData.restaurantName}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1">Address</label>
+            <input
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1">Notification Frequency (Days)</label>
+            <input
+              type="number"
+              name="notificationFrequency"
+              value={formData.notificationFrequency}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              min="1"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Right Column: Lead User Information */}
+        <div>
+          <h4 className="text-md font-semibold mb-4">Lead User Information</h4>
+          <div className="mb-4">
+            <label className="block mb-1">Lead Name</label>
+            <input
+              type="text"
+              name="leadName"
+              value={formData.leadName}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1">Phone Number</label>
+            <input
+              type="text"
+              name="number"
+              value={formData.number}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+        </div>
       </div>
-      <div className="mb-4">
-        <label className="block mb-1">Address</label>
-        <input
-          type="text"
-          name="address"
-          value={formData.address}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-1">Contact Number</label>
-        <input
-          type="text"
-          name="contactNumber"
-          value={formData.contactNumber}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-1">Assigned KAM</label>
-        <input
-          type="text"
-          name="assignedKAM"
-          value={formData.assignedKAM}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-1">Notification Frequency (Days)</label>
-        <input
-          type="number"
-          name="notificationFrequency"
-          value={formData.notificationFrequency}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          min="1"
-          required
-        />
-      </div>
-      <div className="flex space-x-4">
+
+      {/* Add and Cancel Buttons */}
+      <div className="flex justify-end mt-6">
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 mr-4"
+        >
+          Cancel
+        </button>
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           Add Lead
-        </button>
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          Cancel
         </button>
       </div>
     </form>
