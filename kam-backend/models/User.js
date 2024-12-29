@@ -40,13 +40,6 @@ UserSchema.pre("save", async function (next) {
       return next(new Error("Only one admin is allowed in the system."));
     }
   }
-
-  // Hash password if modified
-  if (this.isModified("password")) {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-  }
-  next();
 });
 
 // Hash password before saving
