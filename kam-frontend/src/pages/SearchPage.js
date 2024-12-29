@@ -7,7 +7,6 @@ const SearchPage = () => {
   const [filters, setFilters] = useState({
     name: location.state?.name || "",
     status: location.state?.status || "",
-    assignedKAM: "",
   });
   const [results, setResults] = useState([]);
   const [sortBy, setSortBy] = useState("");
@@ -94,17 +93,6 @@ const SearchPage = () => {
             </select>
           </div>
           <div className="mb-4">
-            <label className="block mb-1">Assigned KAM</label>
-            <input
-              type="text"
-              name="assignedKAM"
-              value={filters.assignedKAM}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              placeholder="Search by KAM"
-            />
-          </div>
-          <div className="mb-4">
             <label className="block mb-1">Sort By</label>
             <select
               value={sortBy}
@@ -136,22 +124,22 @@ const SearchPage = () => {
                       <h4 className="font-bold">{lead.name}</h4>
                       {lead.status === "Active" ? (
                         <p className="text-green-500">Active</p>
-                      ) : (
+                      ) : lead.status === "Inactive" ? (
                         <p className="text-gray-500">Inactive</p>
+                      ) : (
+                        <p className="text-yellow-600">New</p>
                       )}
                     </div>
-                    <p>Assigned KAM: {lead.assignedKAM}</p>
-                    <p>Contact: {lead.contactNumber}</p>
-                  </div>
-                  <div>
-                    <p>Average Interactions: {lead.averageInteractions || 0}</p>
-                    <p>Average Orders: {lead.averageOrders || 0}</p>
                     <p>
                       Last Interaction:{" "}
                       {lead.lastInteractionTime
                         ? new Date(lead.lastInteractionTime).toLocaleString()
                         : "No interactions yet"}
                     </p>
+                  </div>
+                  <div>
+                    <p>Average Interactions: {lead.averageInteractions || 0}</p>
+                    <p>Average Orders: {lead.averageOrders || 0}</p>
                   </div>
                 </Link>
               </li>

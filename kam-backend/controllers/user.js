@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Lead = require("../models/Lead");
 
-// Register a new user
 exports.registerUser = async (req, res) => {
   try {
     const { name, email, password, role, number } = req.body;
@@ -49,7 +48,6 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// Login User
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -116,7 +114,6 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-// logout User
 exports.logoutUser = async (req, res) => {
   try {
     const { userId } = req.body; // Assume the client sends the user ID when logging out.

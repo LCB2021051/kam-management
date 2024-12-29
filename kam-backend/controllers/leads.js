@@ -174,11 +174,16 @@ exports.deleteLead = async (req, res) => {
       await User.findByIdAndDelete(lead.leadUser);
     }
 
+    // Delete all users in the contacts array
+    if (lead.contacts && lead.contacts.length > 0) {
+      await User.deleteMany({ _id: { $in: lead.contacts } });
+    }
+
     // Delete the lead
     await Lead.findByIdAndDelete(req.params.id);
 
     res.json({
-      message: "Lead and associated lead user deleted successfully",
+      message: "Lead, associated lead user, and contacts deleted successfully",
     });
   } catch (err) {
     console.error("Error deleting lead:", err.message);
