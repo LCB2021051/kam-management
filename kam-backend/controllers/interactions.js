@@ -14,8 +14,6 @@ exports.addInteraction = async (req, res) => {
     ]);
 
     if (!fromUser || !toUser) {
-      console.log(fromUser, toUser);
-
       return res
         .status(404)
         .json({ message: "Invalid sender or recipient ID." });
