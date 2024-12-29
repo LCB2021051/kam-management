@@ -108,8 +108,10 @@ const Dashboard = () => {
                 <div>
                   {lead.status === "Active" ? (
                     <p className="text-green-500">Active</p>
-                  ) : (
+                  ) : lead.status === "Inactive" ? (
                     <p className="text-gray-500">Inactive</p>
+                  ) : (
+                    <p className="text-yellow-600">New</p>
                   )}
                 </div>
                 <div className="text-gray-500 text-sm">

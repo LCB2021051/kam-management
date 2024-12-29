@@ -83,8 +83,12 @@ exports.loginUser = async (req, res) => {
       const lead = await Lead.findById(user.restaurantId);
       if (lead && lead.status !== "Active") {
         lead.status = "Active";
+        lead.lastLoginTime = new Date();
         await lead.save();
       }
+
+      // Update the lastLoginTime for the user
+      await user.save();
     }
 
     // Generate JWT token

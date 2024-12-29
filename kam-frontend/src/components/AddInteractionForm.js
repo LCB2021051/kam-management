@@ -1,11 +1,19 @@
 import React, { useState } from "react";
 
 const AddInteractionForm = ({ restaurantId, lead, onInteractionAdded }) => {
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("user"));
+  } catch (error) {
+    console.error("Error parsing user from localStorage:", error.message);
+  }
+
   const [newInteraction, setNewInteraction] = useState({
+    restaurantId,
     type: "Call", // Default value
     about: "",
-    from: "Admin", // Default value
-    to: lead?.assignedKAM || "", // Default to assigned KAM
+    from: user?.id || "Admin", // Default to logged-in user or Admin
+    to: lead?.leadUser?._id || "", // Default to leadUser's ID
   });
   const [message, setMessage] = useState("");
   const [isFormVisible, setIsFormVisible] = useState(false); // Toggle visibility
@@ -21,14 +29,15 @@ const AddInteractionForm = ({ restaurantId, lead, onInteractionAdded }) => {
         return;
       }
 
-      const data = await onInteractionAdded(restaurantId, newInteraction);
+      await onInteractionAdded(newInteraction);
 
       // Reset form and show success message
       setNewInteraction({
+        restaurantId,
         type: "Call", // Reset to default
         about: "",
-        from: "Admin", // Reset to default
-        to: lead?.assignedKAM || "", // Reset to default
+        from: user?.id || "Admin", // Reset to default
+        to: lead?.leadUser?._id || "", // Reset to default
       });
       setMessage("Interaction added successfully!");
     } catch (error) {
@@ -62,7 +71,6 @@ const AddInteractionForm = ({ restaurantId, lead, onInteractionAdded }) => {
           onSubmit={handleAddInteraction}
           className="grid grid-cols-2 gap-2 mt-4"
         >
-          {/* Interaction Type Dropdown */}
           <div>
             <label className="block text-xs font-semibold mb-1">Type</label>
             <select
@@ -82,7 +90,6 @@ const AddInteractionForm = ({ restaurantId, lead, onInteractionAdded }) => {
             </select>
           </div>
 
-          {/* About Input */}
           <div>
             <label className="block text-xs font-semibold mb-1">About</label>
             <input
@@ -100,24 +107,16 @@ const AddInteractionForm = ({ restaurantId, lead, onInteractionAdded }) => {
             />
           </div>
 
-          {/* From Input */}
           <div>
             <label className="block text-xs font-semibold mb-1">From</label>
             <input
               type="text"
               value={newInteraction.from}
-              onChange={(e) =>
-                setNewInteraction({
-                  ...newInteraction,
-                  from: e.target.value,
-                })
-              }
-              className="w-full p-1 border rounded text-xs"
+              className="w-full p-1 border rounded text-xs bg-gray-100"
               readOnly
             />
           </div>
 
-          {/* To Input */}
           <div>
             <label className="block text-xs font-semibold mb-1">To</label>
             <input
@@ -133,7 +132,6 @@ const AddInteractionForm = ({ restaurantId, lead, onInteractionAdded }) => {
             />
           </div>
 
-          {/* Submit Button */}
           <div className="col-span-2">
             <button
               type="submit"
@@ -145,7 +143,6 @@ const AddInteractionForm = ({ restaurantId, lead, onInteractionAdded }) => {
         </form>
       )}
 
-      {/* Message Section */}
       {message && <p className="text-blue-500 mt-2 text-xs">{message}</p>}
     </div>
   );

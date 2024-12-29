@@ -5,7 +5,7 @@ const PrivateRoute = ({ children, allowedRoles, user }) => {
   const token = localStorage.getItem("authToken");
 
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   if (allowedRoles && (!user || !allowedRoles.includes(user.role))) {

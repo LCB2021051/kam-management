@@ -11,6 +11,9 @@ const Contact = ({ contact, restaurantId, handleDeleteContact }) => {
           <span className="font-bold">Name:</span> {contact.name}
         </p>
         <p>
+          <span className="font-bold">ID:</span> {contact._id}
+        </p>
+        <p>
           <span className="font-bold">Role:</span> {contact.role}
         </p>
         <p>

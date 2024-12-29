@@ -72,9 +72,11 @@ const Leads = () => {
               <div className="flex flex-row gap-5 items-center">
                 <h3 className="text-lg font-bold">{lead.name}</h3>
                 {lead.status === "Active" ? (
-                  <p className="text-green-500 font-medium">Active</p>
+                  <p className="text-green-500">Active</p>
+                ) : lead.status === "Inactive" ? (
+                  <p className="text-gray-500">Inactive</p>
                 ) : (
-                  <p className="text-gray-500 font-medium">Inactive</p>
+                  <p className="text-yellow-600">New</p>
                 )}
               </div>
               <p>{lead.address}</p>

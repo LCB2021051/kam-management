@@ -18,17 +18,12 @@ import PrivateRoute from "./components/PrivateRoute.js";
 import Unauthorized from "./pages/Unauthorized.js";
 
 const App = () => {
-  const [authToken, setAuthToken] = useState(null);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (token && storedUser) {
-      setAuthToken(token);
-      setUser(storedUser);
-    }
-  }, []);
+  const [authToken, setAuthToken] = useState(() =>
+    localStorage.getItem("authToken")
+  );
+  const [user, setUser] = useState(() =>
+    JSON.parse(localStorage.getItem("user"))
+  );
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");

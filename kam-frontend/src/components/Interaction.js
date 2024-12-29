@@ -5,15 +5,14 @@ import AddInteractionForm from "./AddInteractionForm";
 
 const Interaction = ({ restaurantId, lead }) => {
   const [interactions, setInteractions] = useState([]);
-  const [showLog, setShowLog] = useState(false); // Toggle state for interaction log
+  const [showLog, setShowLog] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Fetch interactions when `showLog` is toggled to true
   useEffect(() => {
     if (showLog) {
       fetchInteractions();
     }
-  }, [showLog, lead]);
+  }, [showLog]);
 
   const fetchInteractions = async () => {
     try {
@@ -39,10 +38,9 @@ const Interaction = ({ restaurantId, lead }) => {
 
   return (
     <div className="p-4">
-      {/* Toggle Button */}
       <div className="flex justify-between">
         <button
-          onClick={() => setShowLog((prev) => !prev)} // Toggle visibility
+          onClick={() => setShowLog((prev) => !prev)}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           {showLog ? "Hide Interaction Log" : "Show Interaction Log"}
@@ -50,7 +48,6 @@ const Interaction = ({ restaurantId, lead }) => {
         <NextInteractionDue restaurantId={restaurantId} />
       </div>
 
-      {/* Display Interactions */}
       {showLog && (
         <div className="mt-4">
           <h3 className="text-lg font-bold mb-4">Interaction Log</h3>
@@ -83,8 +80,6 @@ const Interaction = ({ restaurantId, lead }) => {
           ) : (
             <p className="text-gray-500">No interactions found.</p>
           )}
-
-          {/* Add Interaction Form */}
           <AddInteractionForm
             restaurantId={restaurantId}
             lead={lead}
