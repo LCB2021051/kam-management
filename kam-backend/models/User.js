@@ -32,6 +32,23 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Custom validation for ensuring only one admin exists
+UserSchema.pre("save", async function (next) {
+  if (this.role === "admin") {
+    const adminExists = await mongoose.model("User").findOne({ role: "admin" });
+    if (adminExists && adminExists._id.toString() !== this._id.toString()) {
+      return next(new Error("Only one admin is allowed in the system."));
+    }
+  }
+
+  // Hash password if modified
+  if (this.isModified("password")) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  }
+  next();
+});
+
 // Hash password before saving
 UserSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
