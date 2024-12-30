@@ -50,6 +50,10 @@ const Navbar = ({ user, onLogout }) => {
           </button>
         </form>
 
+        <Link to={"/"} className="text-white hover:underline hidden md:block">
+          Dashboard
+        </Link>
+
         <Link
           to={"/leads/performance"}
           className="text-white hover:underline hidden md:block"

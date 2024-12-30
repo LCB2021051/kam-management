@@ -45,16 +45,19 @@ export const logout = async (userId) => {
 
 // Simulate an order
 export const simulateOrder = async (restaurantId, items) => {
-  const response = await axios.post(`${API_BASE_URL}/orders/simulate-order`, {
-    restaurantId,
-    items,
-  });
+  const response = await axiosInstance.post(
+    `${API_BASE_URL}/orders/simulate-order`,
+    {
+      restaurantId,
+      items,
+    }
+  );
   return response.data;
 };
 
 // pending orders
 export const getPendingOrders = async (restaurantId) => {
-  const response = await axios.get(`${API_BASE_URL}/orders/pending`, {
+  const response = await axiosInstance.get(`${API_BASE_URL}/orders/pending`, {
     params: { restaurantId },
   });
   return response.data;
@@ -62,7 +65,7 @@ export const getPendingOrders = async (restaurantId) => {
 
 export const updateOrderStatus = async (orderId, status) => {
   try {
-    const response = await axios.put(
+    const response = await axiosInstance.put(
       `${API_BASE_URL}/orders/${orderId}/status`,
       {
         status,

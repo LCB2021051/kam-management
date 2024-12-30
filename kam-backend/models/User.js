@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema(
     password: {
       type: String,
       required: function () {
-        return this.role !== "staff";
+        return this.role !== "staff" && this.role !== "manager";
       },
     },
     number: {

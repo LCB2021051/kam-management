@@ -113,20 +113,6 @@ export const getLeadById = async (id) => {
   }
 };
 
-// Simulate a call
-export const simulateCall = async (restaurantId, to, from, about) => {
-  if (!restaurantId || !to || !from || !about) {
-    throw new Error("All fields (restaurantId, to, from, about) are required.");
-  }
-  const response = await axiosInstance.post("/calls/simulate-call", {
-    restaurantId,
-    to,
-    from,
-    about,
-  });
-  return response.data;
-};
-
 // Get lead statistics
 export const getLeadStats = async (leadId) => {
   if (!leadId) throw new Error("Lead ID is required");

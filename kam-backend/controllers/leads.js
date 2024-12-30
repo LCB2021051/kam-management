@@ -384,23 +384,13 @@ exports.addContact = async (req, res) => {
       });
     }
 
-    // Generate a random password if the role is `manager`
-    let password;
-    let hashedPassword;
-
-    if (role === "manager") {
-      password = Math.random().toString(36).slice(-8); // Generate random 8-character password
-      hashedPassword = await bcrypt.hash(password, 10);
-    }
-
     // Create a new contact as a user
     const newContact = new User({
       name,
       role,
       email,
       number,
-      restaurantId: lead._id, // Associate contact with the lead
-      ...(role === "manager" && { password: hashedPassword }), // Add password if role is `manager`
+      restaurantId: lead._id,
     });
 
     await newContact.save();
@@ -413,15 +403,6 @@ exports.addContact = async (req, res) => {
       message: "Contact added successfully",
       contact: newContact,
     };
-
-    // Include credentials if the contact is a manager
-    if (role === "manager") {
-      console.log("Credentials :", newContact.email, password);
-      response.credentials = {
-        email: newContact.email,
-        password,
-      };
-    }
 
     res.status(201).json(response);
   } catch (err) {
