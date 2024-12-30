@@ -28,7 +28,7 @@ const Login = ({ setAuthToken, setUser }) => {
         onSubmit={handleSubmit}
         className="p-6 bg-white rounded shadow-md w-96"
       >
-        <h3 className="text-2xl font-bold mb-4 text-center">Login</h3>
+        <h3 className="text-2xl font-bold mb-4 text-center">Admin Login</h3>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="mb-4">
           <label className="block mb-1 text-sm font-medium">Email</label>
